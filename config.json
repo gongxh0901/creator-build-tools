@@ -1,0 +1,140 @@
+{
+    "creator": "/Applications/Cocos/Creator/3.8.0/CocosCreator.app/Contents/MacOS/CocosCreator",
+    "project": "/Users/gongxh/work/kunpo-lib/KunpoDemo",
+
+    "cdnTips": "cdn地址 放远程资源用: [dev/prod] + platform + [v版本号]" ,
+    "oss": {
+        "publishTips": "发布包上传到cdn上的路径",
+        "publish": "test/publish"
+    },
+    "channelsTip": "根据需求自定义配置渠道",
+    "channels": [
+        {
+            "channel": "wechatgame",
+            "name": "微信小游戏",
+            "platform": "wechatgame",
+            "config": "./local/buildConfig_wechatgame.json"
+        },
+        {
+            "channel": "alipay",
+            "name": "支付宝小游戏",
+            "platform": "alipay-mini-game",
+            "config": "./local/buildConfig_alipay-mini-game.json"
+        },
+        {
+            "channel": "bytedance",
+            "name": "抖音小游戏",
+            "platform": "bytedance-mini-game",
+            "config": "./local/buildConfig_bytedance-mini-game.json"
+        },
+        {
+            "channel": "huawei",
+            "name": "华为快游戏",
+            "platform": "huawei-quick-game",
+            "config": ""
+        },
+        {
+            "channel": "ohos",
+            "name": "鸿蒙",
+            "platform": "ohos",
+            "config": "./local/buildConfig_ohos.json"
+        },
+        {
+            "channel": "ios",
+            "name": "ios",
+            "platform": "ios",
+            "config": "./local/buildConfig_ios.json"
+        },
+        {
+            "channel": "official",
+            "name": "官方android",
+            "platform": "android",
+            "config": "./local/buildConfig_android.json"
+        },
+        {
+            "channel": "taptap",
+            "name": "TapTap",
+            "platform": "android",
+            "config": "./local/buildConfig_android.json"
+        },
+        {
+            "channel": "douyin",
+            "name": "抖音app",
+            "platform": "android",
+            "config": "./local/buildConfig_android.json"
+        }
+    ],
+
+    "platforms": [
+        {
+            "platform": "android",
+            "native": "./native/engine/android/app",
+            "build": "./build/android/proj",
+            "keystore": "./cert/android/test.keystore",
+            "alias": "abcd",
+            "password": "A123456"
+        },
+        {
+            "platform": "ios",
+            "native": "./native/engine/ios",
+            "build": "./build/ios/proj"
+        },
+        {
+            "platform": "ohos",
+            "native": "./native/engine/ohos"
+        },
+        {
+            "platform": "wechatgame",
+            "build": "./build/wechatgame",
+            "appid": "wx912fdb369bfac921",
+            "privateKey": "./cert/wechat/private.wx912fdb369bfac921.key",
+            "remote": "test"
+        },
+        {
+            "platform": "alipay-mini-game",
+            "build": "./build/alipay-mini-game",
+            "appid": "2021004170666283",
+            "remote": "test"
+        },
+        {
+            "platform": "bytedance-mini-game",
+            "build": "./build/bytedance-mini-game",
+            "appid": "tt8d6bfbd6125e2b4002",
+            "remote": "test"
+        }
+    ],
+
+    "hotupdate-tips": {
+        "tips": "根据平台做不同配置",
+        "cdn-tips": "热更新地址，后边会拼接版本号 eg: url + version + platform",
+        "dest-tips": "热更新manifest文件输出相对路径(相对于项目)",
+        "src-tips": "项目构建后资源相对路径 用来生成热更新比对md5",
+        "manifest-tips": "项目构建后资源中的manifest文件所在目录 根据配置不同，路径也不同"
+    },
+    "hotupdate": [
+        {
+            "platform": "android",
+            "cdnDebug": "test/hot-update-debug/",
+            "cdn": "test/hot-update/",
+            "dest": "./assets/",
+            "src": "./build/android/assets",
+            "manifest": "./build/android/assets/assets/main/native"
+        },
+        {
+            "platform": "ios",
+            "cdnDebug": "test/hot-update-debug/",
+            "cdn": "test/hot-update/",
+            "dest": "./assets/",
+            "src": "./build/ios/assets",
+            "manifest": "./build/ios/assets/assets/main/native"
+        },
+        {
+            "platform": "ohos",
+            "cdnDebug": "test/hot-update-debug/",
+            "cdn": "test/hot-update/",
+            "dest": "./assets/",
+            "src": "./build/ohos/assets",
+            "manifest": "./build/ohos/assets/assets/main/native"
+        }
+    ]
+}

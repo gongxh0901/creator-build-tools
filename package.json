@@ -1,0 +1,11 @@
+{
+  "type": "commonjs",
+  "dependencies": {
+    "ali-oss": "^6.22.0",
+    "minidev": "^2.2.5",
+    "miniprogram-ci": "1.9.17",
+    "progress": "^2.0.3",
+    "request": "^2.88.2",
+    "tt-minigame-ide-cli": "^2.0.14"
+  }
+}
