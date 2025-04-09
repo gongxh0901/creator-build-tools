@@ -34,7 +34,7 @@ creator项目自动化打包工具，全自动化流程
 
 * 修改根目录下的`config.json`配置文件
 
-  ```json
+  ```js
   {
     	// creator所在路径
       "creator": "/Applications/Cocos/Creator/3.8.0/CocosCreator.app/Contents/MacOS/CocosCreator",
