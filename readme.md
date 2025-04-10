@@ -207,6 +207,10 @@ creator项目自动化打包工具，全自动化流程
 * 环境变量配置， 作者用的是mac，这里只列出来mac的配置 （一些私密数据通过环境变量来取）
 
   ```bash
+  # android包签名工具 apksigner
+  export APKSIGNER="/xxxx/sdk/android/build-tools/30.0.3/apksigner"
+  export PATH=$PATH:$APKSIGNER
+  
   # OSS环境变量 keyid 和 keysecret
   export OSS_ACCESS_KEY_ID="自己的阿里云的 keyid"
   export OSS_ACCESS_KEY_SECRET="自己的阿里云的 keysecret"

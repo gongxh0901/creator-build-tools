@@ -140,12 +140,12 @@ class BuildAndroid {
         // 执行签名命令 
 
         // 检查环境变量 apksigner 是否设置
-        const apksigner = process.env.APKSIGNER_PATH || 'apksigner';
+        const apksigner = process.env.APKSIGNER; // || 'apksigner';
         console.log("检查环境变量 apksigner 是否设置:" + apksigner);
         try {
             const checkResult = require('child_process').spawnSync(apksigner, ['--version']);
             if (checkResult.error || checkResult.status !== 0) {
-                console.log(colors("red", "未找到apksigner工具，请确保已安装Android SDK并设置APKSIGNER_PATH环境变量"));
+                console.log(colors("red", "未找到apksigner工具，请确保已安装Android SDK并设置APKSIGNER环境变量"));
                 throw new Result(-1, "apksigner工具不可用", checkResult);
             }
         } catch (result) {
@@ -172,18 +172,22 @@ class BuildAndroid {
     }
 
     static async ossUpload() {
-        let oss = new OssUpload(path.join(DataHelper.instance.project, 'publish', this._apkname), DataHelper.instance.publish);
+        let publish = DataHelper.instance.publish;
+        if (!publish.endsWith('/')) {
+            publish += '/';
+        }
+        let oss = new OssUpload(path.join(DataHelper.instance.project, 'publish', this._apkname), publish + this._versionCode);
         await oss.upload();
     }
 
     static async notificationFeishu() {
         let ossUrl = DataHelper.instance.ossUrl;
-        let url = ossUrl + DataHelper.instance.publish + '/';
+        let url = ossUrl + DataHelper.instance.publish;
         if (!url.endsWith('/')) {
             url += '/';
         }
-        
-        await new NotificationFeishu().nativeSend(this._channel, this._versionCode, this._buildCode, url + this._apkname, null, this._isDebug);
+        url += (this._versionCode + '/' + this._apkname);
+        await new NotificationFeishu().nativeSend(this._channel, this._versionCode, this._buildCode, url, null, this._isDebug);
     }
 }
 

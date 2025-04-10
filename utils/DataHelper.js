@@ -45,10 +45,6 @@ class DataHelper {
         if (!config.oss || !this.publish) {
             throw new Error('oss 配置错误 请检查 config.json');
         }
-        if (!config.feishu) {
-            throw new Error('feishu 配置不存在 请检查config.json');
-        }
-
         // 热更新配置检查
         if (!config.hotupdate) {
             console.warn('热更新配置不存在 请检查config.json 如果不需要请忽略');
