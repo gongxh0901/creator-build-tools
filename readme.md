@@ -237,7 +237,6 @@ creator项目自动化打包工具，全自动化流程
 
 
 #### 脚本使用
-
 ```bash
 # 通过命令行打包
 node BuildCommand.js
