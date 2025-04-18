@@ -35,7 +35,7 @@ class BuildCreator3_8 {
             this.modifyMainJs(platform, version);
 
             // 执行热更新manifest文件生成脚本
-            new ManifestGenerator().start(version, 0, platform, isDebug);
+            new ManifestGenerator().start(version, "0", platform, isDebug);
         }
     }
 

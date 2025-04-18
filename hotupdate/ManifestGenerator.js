@@ -29,10 +29,10 @@ class ManifestGenerator {
         if (cdnUrl.endsWith('/')) {
             cdnUrl = cdnUrl.slice(0, -1);
         }
-        manifest.packageUrl = `${cdnUrl}/v${gameVersion}/${platform}`;
+        manifest.packageUrl = `${cdnUrl}/v${gameVersion}/${platform}/${hotVersion}`;
         manifest.remoteManifestUrl = `${manifest.packageUrl}/project.manifest`;
-        manifest.remoteVersionUrl = `${manifest.packageUrl}/version.manifest`;
-        manifest.version = gameVersion + "." + hotVersion;
+        manifest.remoteVersionUrl = `${cdnUrl}/v${gameVersion}/${platform}/version.manifest`;
+        manifest.version = hotVersion + "";
 
         let src = DataHelper.instance.getHotupdateSrc(platform);
         let dest = DataHelper.instance.getHotupdateDest(platform);

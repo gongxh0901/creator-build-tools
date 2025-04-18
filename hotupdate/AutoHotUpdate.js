@@ -12,7 +12,8 @@ const BuildCreator3_8 = require('./../buildcc/BuildCreator3.8');
 const OssUpload = require('./../oss/AliyOssUpload');
 const NotificationFeishu = require('./../NotificationFeishu/NotificationFeishu');
 const DataHelper = require('../utils/DataHelper');
-
+const Result = require('./../utils/Result');
+const fs = require('fs');
 class AutoHotUpdate {
     /** 平台 支持类型 ios, android, ohos */
     _platform = "android";
@@ -165,7 +166,10 @@ class AutoHotUpdate {
         if (cdnPath.endsWith('/')) {
             cdnPath = cdnPath.slice(0, -1);
         }
-        let serverPath = `${cdnPath}/v${this._gameVersion}/${this._platform}`;
+        // version.manifest 放置路径
+        let versionPath = `${cdnPath}/v${this._gameVersion}/${this._platform}`;
+        // 实际资源放置路径
+        let serverPath = versionPath + `/${this._hotVersion}`;
         console.log("上传到的路径:", serverPath);
         
         // 上传assets文件夹
@@ -175,7 +179,7 @@ class AutoHotUpdate {
         // 上传project.manifest文件
         await new OssUpload(path.join(destPath, "project.manifest"), serverPath).upload();
         // 上传version.manifest文件
-        await new OssUpload(path.join(destPath, "version.manifest"), serverPath).upload();
+        await new OssUpload(path.join(destPath, "version.manifest"), versionPath).upload();
     }
 
     getChannelByPlatform() {
