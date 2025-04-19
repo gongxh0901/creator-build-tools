@@ -23,6 +23,8 @@ class AutoHotUpdate {
     _hotVersion = "1";
     /** 是否是debug */
     _isDebug = false;
+    /** 是否立即生效 */
+    _immediately = true;
     /** 是否通知飞书 */
     _notification = true;
 
@@ -31,13 +33,14 @@ class AutoHotUpdate {
         await this.inputGameVersion();
         await this.inputHotVersion();
         await this.inputDebug();
+        await this.inputImmediately();
         await this.inputNotificationFeishu();
 
         await this.buildFlow();
     }
 
     /** 外部传入的参数 */
-    async customStart(platform, gameVersion, hotVersion, isDebug, notification) {
+    async customStart(platform, gameVersion, hotVersion, isDebug, immediately, notification) {
         if (!["ios", "android", "ohos"].includes(platform)) {
             console.log(colors("red", `传入的平台类型[${platform}]不合法， 请检查参数`));
             return;
@@ -53,8 +56,9 @@ class AutoHotUpdate {
         this._platform = platform;
         this._gameVersion = gameVersion;
         this._hotVersion = hotVersion;
-        this._isDebug = isDebug == true ? true : false;
-        this._notification = notification == false ? false : true;
+        this._isDebug = isDebug;
+        this._immediately = immediately;
+        this._notification = notification;
         await this.buildFlow();
     }
 
@@ -108,10 +112,22 @@ class AutoHotUpdate {
      */
     async inputDebug() {
         let input = await WaitInput("请输入是否debug(y/n) 默认是非debug:");
-        if (input === "y") {
+        if (input.toLowerCase() === "y") {
             this._isDebug = true;
         } else {
             this._isDebug = false;
+        }
+    }
+
+    /**
+     * 输入是否立即生效
+     */
+    async inputImmediately() {
+        let input = await WaitInput("请输入是否立即生效(y/n) 默认是立即生效:");
+        if (input.toLowerCase() === "n") {
+            this._immediately = false;
+        } else {
+            this._immediately = true;
         }
     }
 
@@ -120,7 +136,7 @@ class AutoHotUpdate {
      */
     async inputNotificationFeishu() {
         let input = await WaitInput("请输入是否通知飞书(y/n) 默认通知:");
-        if (input === "n") {
+        if (input.toLowerCase() === "n") {
             this._notification = false;
         } else {
             this._notification = true;
@@ -178,8 +194,23 @@ class AutoHotUpdate {
         await new OssUpload(path.join(srcPath, "src"), serverPath).upload();
         // 上传project.manifest文件
         await new OssUpload(path.join(destPath, "project.manifest"), serverPath).upload();
-        // 上传version.manifest文件
-        await new OssUpload(path.join(destPath, "version.manifest"), versionPath).upload();
+
+        if (this._immediately) {
+            // 上传version.manifest文件
+            await new OssUpload(path.join(destPath, "version.manifest"), versionPath).upload();
+        } else {
+            // 改名version.manifest 成文件 version.manifest.temp 后上传到cdn
+            let tempPath = path.join(destPath, "version.manifest.temp");
+            // 如果文件存在，先删除
+            if (fs.existsSync(tempPath)) {
+                fs.unlinkSync(tempPath);
+            }
+            // 重命名
+            fs.renameSync(path.join(destPath, "version.manifest"), tempPath);
+            await new OssUpload(tempPath, versionPath).upload();
+            // 上传完成后删除
+            fs.unlinkSync(tempPath);
+        }
     }
 
     getChannelByPlatform() {

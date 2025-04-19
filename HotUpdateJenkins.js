@@ -11,6 +11,7 @@ let gameVersion = "0.0.1";
 let hotVersion = 1;
 let isDebug = true;
 let notification = true;
+let immediately = true;
 
 // 解析参数
 var i = 2;
@@ -38,6 +39,10 @@ while (i < process.argv.length) {
             notification = process.argv[i + 1];
             i += 2;
             break;
+        case '-i':
+            immediately = process.argv[i + 1] == "true" ? true : false;
+            i += 2;
+            break;
         default:
             i++;
             break;
@@ -51,5 +56,5 @@ while (i < process.argv.length) {
 // isDebug = true
 // notification = true
 
-// let autoHotUpdate = new AutoHotUpdate();
-// autoHotUpdate.customStart(platform, gameVersion, hotVersion, isDebug, notification);
+let autoHotUpdate = new AutoHotUpdate();
+autoHotUpdate.customStart(platform, gameVersion, hotVersion, isDebug, immediately, notification);
