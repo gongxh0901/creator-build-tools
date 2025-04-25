@@ -86,8 +86,8 @@
         {
             "platform": "wechatgame",
             "build": "./build/wechatgame",
-            "appid": "wx912fdb369bfac921",
-            "privateKey": "./cert/wechat/private.wx912fdb369bfac921.key",
+            "appid": "wx1368a27f1fde7237",
+            "privateKey": "./cert/wechat/private.wx1368a27f1fde7237.key",
             "remote": "test"
         },
         {
