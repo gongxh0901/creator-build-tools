@@ -59,12 +59,12 @@ while (i < process.argv.length) {
 // channel = 'wechatgame'
 // channel = 'alipay'
 // channel = 'bytedance'
-// version = '2.18.99'
+// version = '2.0.0'
 // build = 1
 // debug = true
-// robot = 19
+// robot = 24
 // message = '1.这是一个测试版本'
-// notification = true
+// notification = false
 
 // let autoBuild = new AutoBuild();
 // autoBuild.customStart(channel, version, build, debug, robot, message, notification);

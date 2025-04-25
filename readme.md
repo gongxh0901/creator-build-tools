@@ -157,7 +157,7 @@ creator项目自动化打包工具，全自动化流程
               "platform": "bytedance-mini-game",
               "build": "./build/bytedance-mini-game",
             	// 抖音小游戏 appid
-              "appid": "tt8d6bfbd6125e2b4002",
+              "appid": "",
               "remote": "test"
           }
       ],
