@@ -49,6 +49,7 @@ class BuildAndroid {
         } catch (error) {
             console.log(colors("red", "android包上传失败, 跳过飞书通知"), error);
         }
+        console.log(colors("green", "android打包完成, apk文件路径:" + path.join(DataHelper.instance.project, 'publish', this._apkname)));
     }
 
     /** 修改版本号 */
@@ -141,9 +142,7 @@ class BuildAndroid {
 
         // 检查环境变量 apksigner 是否设置
         const apksigner = process.env.APKSIGNER; // || 'apksigner';
-        console.log("检查环境变量 apksigner 是否设置:" + apksigner);
-
-        
+        console.log("检查环境变量 apksigner:" + apksigner);
         try {
             const checkResult = require('child_process').spawnSync(apksigner, ['--version']);
             if (checkResult.error || checkResult.status !== 0) {
@@ -167,7 +166,7 @@ class BuildAndroid {
             if (path.isAbsolute(info.keystore)) {
                 certificateInfo.keystore = info.keystore;
             } else {
-                certificateInfo.keystore = path.join(DataHelper.path, info.keystore);
+                certificateInfo.keystore = path.join(DataHelper.instance.path, info.keystore);
             }
             certificateInfo.keyStorePassword = info.keyStorePassword;
             certificateInfo.alias = info.alias;

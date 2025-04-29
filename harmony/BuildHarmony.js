@@ -50,6 +50,11 @@ class BuildHarmony {
         } catch (error) {
             console.log(colors("red", "鸿蒙包上传到cdn失败, 跳过飞书通知"), error);
         }
+
+        console.log(colors("green", "鸿蒙打包完成, hap文件路径:" + path.join(DataHelper.instance.project, 'publish', this._hapName)));
+        if (!this._isDebug) {
+            console.log(colors("green", "鸿蒙打包完成, app文件路径:" + path.join(DataHelper.instance.project, 'publish', this._appName)));
+        }
     }
 
     /** 修改版本号 */
