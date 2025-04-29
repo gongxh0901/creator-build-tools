@@ -62,6 +62,22 @@ class ManifestGenerator {
             console.log(colors("red", '资源目录下未找到manifest文件'));
         }
 
+        // 如果是鸿蒙平台
+        if (platform == "harmonyos-next") {
+            let manifestFiles = this.findManifestFiles(DataHelper.instance.getHotupdateManifestHarmony());
+            let manifestFile = manifestFiles.length > 0 ? manifestFiles[0] : null;
+            // 这里应该就只有一个
+            // 如果找到了manifest文件，则替换内容
+            if (manifestFile) {
+                let writeResult2 = await this.writeFile(manifestFile, JSON.stringify(manifest));
+                if (writeResult2.code != 0) {
+                    throw writeResult2;
+                }
+            } else {
+                console.log(colors("red", '鸿蒙平台资源目录下未找到manifest文件'));
+            }
+        }
+
         // 最后删除assets和搜索路径 写入version.manifest
         delete manifest.assets;
         delete manifest.searchPaths;

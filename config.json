@@ -1,5 +1,5 @@
 {
-    "creator": "/Applications/Cocos/Creator/3.8.0/CocosCreator.app/Contents/MacOS/CocosCreator",
+    "creator": "/Applications/Cocos/Creator/3.8.6/CocosCreator.app/Contents/MacOS/CocosCreator",
     "project": "/Users/gongxh/work/kunpo-lib/KunpoDemo",
 
     "cdnTips": "cdn地址 放远程资源用: [dev/prod] + platform + [v版本号]" ,
@@ -28,16 +28,10 @@
             "config": "./local/buildConfig_bytedance-mini-game.json"
         },
         {
-            "channel": "huawei",
-            "name": "华为快游戏",
-            "platform": "huawei-quick-game",
-            "config": ""
-        },
-        {
-            "channel": "ohos",
+            "channel": "harmonyos-next",
             "name": "鸿蒙",
-            "platform": "ohos",
-            "config": "./local/buildConfig_ohos.json"
+            "platform": "harmonyos-next",
+            "config": "./local/buildConfig_harmonyos-next.json"
         },
         {
             "channel": "ios",
@@ -70,9 +64,20 @@
             "platform": "android",
             "native": "./native/engine/android/app",
             "build": "./build/android/proj",
-            "keystore": "./cert/android/test.keystore",
-            "alias": "abcd",
-            "password": "A123456"
+            "certificate": {
+                "debug": {
+                    "keystore": "./cert/android/test.keystore",
+                    "keyStorePassword": "A123456",
+                    "alias": "abcd",
+                    "keyPassword": "A123456"
+                },
+                "release": {
+                    "keystore": "./cert/android/test.keystore",
+                    "keyStorePassword": "A123456",
+                    "alias": "abcd",
+                    "keyPassword": "A123456"
+                }
+            }
         },
         {
             "platform": "ios",
@@ -80,8 +85,29 @@
             "build": "./build/ios/proj"
         },
         {
-            "platform": "ohos",
-            "native": "./native/engine/ohos"
+            "platform": "harmonyos-next",
+            "native": "./native/engine/harmonyos-next",
+            "build": "./build/harmonyos-next/proj",
+            "certificate": {
+                "debug": {
+                    "storePassword": "Abc123456",
+                    "certpath": "/Users/gongxh/Desktop/harmonyTest/debug.cer",
+                    "keyAlias": "abcd",
+                    "keyPassword": "Abc123456",
+                    "profile": "/Users/gongxh/Desktop/harmonyTest/harmonyTestProfileDebug.p7b",
+                    "signAlg": "SHA256withECDSA",
+                    "storeFile": "/Users/gongxh/Desktop/harmonyTest/harmonyTest.p12"
+                },
+                "release": {
+                    "storePassword": "000000195109A27949A8FFBB4BEFFCEFD4919556F185AF0C9618D20C4F7CC4D9F92BB336732F418915",
+                    "certpath": "./cert/harmony/release.cer",
+                    "keyAlias": "abcd",
+                    "keyPassword": "000000190BAAF6A63567D21E7EC60F23F8F9D0473600090229B776998483F755DA3F48C8DAEE0C00D5",
+                    "profile": "./cert/harmony/releaseProfileRelease.p7b",
+                    "signAlg": "SHA256withECDSA",
+                    "storeFile": "./cert/harmony/harmonyTest.p12"
+                }
+            }
         },
         {
             "platform": "wechatgame",
@@ -101,6 +127,9 @@
             "build": "./build/bytedance-mini-game",
             "appid": "tt515427e9ce658a4202",
             "remote": "test"
+        },
+        {
+            "platform": "huawei-quick-game"
         }
     ],
 
@@ -129,12 +158,13 @@
             "manifest": "./build/ios/assets/assets/main/native"
         },
         {
-            "platform": "ohos",
+            "platform": "harmonyos-next",
             "cdnDebug": "test/hot-update-debug/",
             "cdn": "test/hot-update/",
             "dest": "./assets/",
-            "src": "./build/ohos/assets",
-            "manifest": "./build/ohos/assets/assets/main/native"
+            "src": "./build/harmonyos-next/assets",
+            "manifest": "./build/harmonyos-next/assets/assets/main/native",
+            "manifest-harmony": "./native/engine/harmonyos-next/entry/src/main/resources/rawfile/Resources/assets/main/native"
         }
     ]
 }

@@ -13,7 +13,8 @@ const BuildAndroid = require('./android/BuildAndroid');
 const BuildWechat = require('./wechat/BuildWechat');
 const BuildAlipay = require('./aliypay/BuildAlipay');
 const BuildBytedance = require('./bytedance/BuildBytedance');
-
+const BuildHarmony = require('./harmony/BuildHarmony');
+const Result = require('./utils/Result');
 
 console.log("filename", __filename);
 console.log("dirname",__dirname);
@@ -278,9 +279,9 @@ class AutoBuild {
             } else if (platform == "ios") {
     
                 throw new Result(-1, `渠道[${channel}]平台类型:${platform}打包功能未实现`);
-            } else if (platform === "ohos") {
+            } else if (platform === "harmonyos-next") {
     
-                throw new Result(-1, `渠道[${channel}]平台类型:${platform}打包功能未实现`);
+                await BuildHarmony.start(this._version, this._buildCode, this._debug, this._notificationFeishu);
             } else if (platform === "android") {
     
                 // 构建安卓apk

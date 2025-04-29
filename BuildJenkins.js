@@ -59,7 +59,8 @@ while (i < process.argv.length) {
 // channel = 'wechatgame'
 // channel = 'alipay'
 // channel = 'bytedance'
-// version = '2.0.0'
+// channel = 'harmonyos-next'
+// version = '0.0.1'
 // build = 1
 // debug = true
 // robot = 24

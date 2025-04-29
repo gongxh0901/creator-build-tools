@@ -22,7 +22,7 @@ class NotificationFeishu {
      * @param {string} version 版本号
      * @param {string} build 构建号
      * @param {string} url 下载地址1
-     * @param {string} url2 下载地址2 鸿蒙会用到
+     * @param {string} url2 下载地址2 鸿蒙release会用到 
      * @param {boolean} isDebug 是否为调试模式
      */
     async nativeSend(channel, version, build, url, url2 = null, isDebug = false) {
@@ -31,8 +31,12 @@ class NotificationFeishu {
             let platform = DataHelper.instance.getChannelPlatform(channel);
             if (platform == "ios") {
                 content = `新包已上传到 **TestFlight** 登录苹果开发者账号查看详情\n下载地址:\n[${url}](${url})`;
-            } else if (platform == "ohos") {
-                content = `下载地址:\n发布包地址: [${url}](${url})\n安装包地址: [${url2}](${url2})`;
+            } else if (platform == "harmonyos-next") {
+                if (isDebug) {
+                    content = `下载地址:\n[${url}](${url})`;    
+                } else {
+                    content = `下载地址:\n发布包地址: [${url}](${url})\n安装包地址: [${url2}](${url2})`;
+                }
             } else {
                 content = `下载地址:\n[${url}](${url})`;
             }

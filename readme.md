@@ -13,7 +13,7 @@ creator项目自动化打包工具，全自动化流程
   ```txt
   1. andorid （支持多渠道）
   2. ios （未实现，需配合`fastlane`使用）
-  3. 鸿蒙 （未实现）
+  3. 鸿蒙
   4. 微信小游戏
   5. 支付宝小游戏
   6. 抖音小游戏
@@ -37,7 +37,7 @@ creator项目自动化打包工具，全自动化流程
   ```js
   {
     	// creator所在路径
-      "creator": "/Applications/Cocos/Creator/3.8.0/CocosCreator.app/Contents/MacOS/CocosCreator",
+      "creator": "/Applications/Cocos/Creator/3.8.6/CocosCreator.app/Contents/MacOS/CocosCreator",
     	// creator项目路径，换成自己的
       "project": "/Users/**/work/kunpo-lib/KunpoDemo",
   
@@ -78,10 +78,10 @@ creator项目自动化打包工具，全自动化流程
               "config": ""
           },
           {
-              "channel": "ohos",
+              "channel": "harmonyos-next",
               "name": "鸿蒙",
-              "platform": "ohos",
-              "config": "./local/buildConfig_ohos.json"
+              "platform": "harmonyos-next",
+              "config": "./local/buildConfig_harmonyos-next.json"
           },
           {
               "channel": "ios",
@@ -119,11 +119,20 @@ creator项目自动化打包工具，全自动化流程
             	// 平台项目路径 相对于creator项目根目录 不改导出位置的话，在build文件夹下
               "build": "./build/android/proj",
             	// android打包秘钥路径 相对于此工具的根目录
-              "keystore": "./cert/android/test.keystore",
-            	// android打包秘钥的alias
-              "alias": "abcd",
-            	// android打包秘钥的密码
-              "password": "A123456"
+              "certificate": {
+                  "debug": {
+                      "keystore": "./cert/android/test.keystore",
+                      "keyStorePassword": "A123456",
+                      "alias": "abcd",
+                      "keyPassword": "A123456"
+                  },
+                  "release": {
+                      "keystore": "./cert/android/test.keystore",
+                      "keyStorePassword": "A123456",
+                      "alias": "abcd",
+                      "keyPassword": "A123456"
+                  }
+              }
           },
           {
             	// 同上
@@ -133,8 +142,32 @@ creator项目自动化打包工具，全自动化流程
           },
           {
   						// 同上
-              "platform": "ohos",
-              "native": "./native/engine/ohos"
+              "platform": "harmonyos-next",
+              "native": "./native/engine/harmonyos-next",
+              "build": "./build/harmonyos-next/proj",
+            	// 鸿蒙打包的证书信息
+              "certificate": {
+                	 // 出debug包，可以根据信息自己配置
+                  "debug": {
+                      "storePassword": "Abc123456",
+                      "certpath": "/Users/gongxh/Desktop/harmonyTest/debug.cer",
+                      "keyAlias": "abcd",
+                      "keyPassword": "Abc123456",
+                      "profile": "/Users/gongxh/Desktop/harmonyTest/harmonyTestProfileDebug.p7b",
+                      "signAlg": "SHA256withECDSA",
+                      "storeFile": "/Users/gongxh/Desktop/harmonyTest/harmonyTest.p12"
+                  },
+                	// 正式包，可以从鸿蒙项目根目录中的build-profile.json5文件中拷贝，对应信息
+                  "release": {
+                      "storePassword": "000000195109A27949A8FFBB4BEFFCEFD4919556F185AF0C9618D20C4F7CC4D9F92BB336732F418915",
+                      "certpath": "./cert/harmony/release.cer",
+                      "keyAlias": "abcd",
+                      "keyPassword": "000000190BAAF6A63567D21E7EC60F23F8F9D0473600090229B776998483F755DA3F48C8DAEE0C00D5",
+                      "profile": "./cert/harmony/releaseProfileRelease.p7b",
+                      "signAlg": "SHA256withECDSA",
+                      "storeFile": "./cert/harmony/harmonyTest.p12"
+                  }
+              }
           },
           {
               "platform": "wechatgame",
@@ -193,12 +226,13 @@ creator项目自动化打包工具，全自动化流程
               "manifest": "./build/ios/assets/assets/main/native"
           },
           {
-              "platform": "ohos",
+              "platform": "harmonyos-next",
               "cdnDebug": "test/hot-update-debug/",
               "cdn": "test/hot-update/",
               "dest": "./assets/",
-              "src": "./build/ohos/assets",
-              "manifest": "./build/ohos/assets/assets/main/native"
+              "src": "./build/harmonyos-next/assets",
+              "manifest": "./build/harmonyos-next/assets/assets/main/native",
+              "manifest-harmony": "./native/engine/harmonyos-next/entry/src/main/resources/rawfile/Resources/assets/main/native"
           }
       ]
   }
@@ -230,6 +264,16 @@ creator项目自动化打包工具，全自动化流程
   export FEISHU_ROBOT_WEBHOOK="换成自己的"
   export FEISHU_ROBOT_WEBHOOK_DEBUG="换成自己的"
   export PATH=$PATH:$FEISHU_ROBOT_APPID:$FEISHU_ROBOT_SECRET:$FEISHU_ROBOT_WEBHOOK:$FEISHU_ROBOT_WEBHOOK_DEBUG
+  
+  # 鸿蒙打包用到的环境变量
+  # hdc
+  export HDC_HOME="${换成自己的}harmony-command-line-tools/sdk/default/openharmony/toolchains"
+  export PATH=$PATH:$HDC_HOME
+  # hvigor ohpm 
+  export PATH=${换成自己的}/harmony-command-line-tools/bin:$PATH
+  # hap-sign-tool
+  export HAP_SIGN_TOOL="${换成自己的}/harmony-command-line-tools/sdk/default/openharmony/toolchains/lib"
+  export PATH=$PATH:$HAP_SIGN_TOOL
   ```
 
 * 配置完成

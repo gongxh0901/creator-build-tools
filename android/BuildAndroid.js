@@ -142,22 +142,46 @@ class BuildAndroid {
         // 检查环境变量 apksigner 是否设置
         const apksigner = process.env.APKSIGNER; // || 'apksigner';
         console.log("检查环境变量 apksigner 是否设置:" + apksigner);
+
+        
         try {
             const checkResult = require('child_process').spawnSync(apksigner, ['--version']);
             if (checkResult.error || checkResult.status !== 0) {
                 console.log(colors("red", "未找到apksigner工具，请确保已安装Android SDK并设置APKSIGNER环境变量"));
-                throw new Result(-1, "apksigner工具不可用", checkResult);
+                throw new Result(-1, "apksigner工具不可用 请确保已安装Android SDK并设置APKSIGNER环境变量", checkResult);
             }
         } catch (result) {
             console.log(colors("red", `检查apksigner失败: ${result.message}`));
             throw result;
         }
 
+        let certificateInfo = { "keystore": "", "keyStorePassword": "", "alias": "", "keyPassword": "" };
+        try {
+            let info = DataHelper.instance.getCertificateInfo("android", this._isDebug);
+            if (!info) {
+                throw new Result(-1, `android平台的秘钥配置信息不存在 请检查config.json中的 android platform 下的 certificate 配置`);
+            }
+            if (!info.keystore || !info.keyStorePassword || !info.alias || !info.keyPassword) {
+                throw new Result(-1, `android平台的秘钥配置信息错误 certificate 的格式为 { release: { keystore: "", keyStorePassword: "", alias: "", keyPassword: "" }, debug: ... }`);
+            }
+            if (path.isAbsolute(info.keystore)) {
+                certificateInfo.keystore = info.keystore;
+            } else {
+                certificateInfo.keystore = path.join(DataHelper.path, info.keystore);
+            }
+            certificateInfo.keyStorePassword = info.keyStorePassword;
+            certificateInfo.alias = info.alias;
+            certificateInfo.keyPassword = info.keyPassword;
+        } catch (result) {
+            console.log(colors("red", `证书配置错误: ${result.message}`));
+            throw result;
+        }
+
         let options = ["sign",
-            "--ks", DataHelper.instance.getKeystore("android"), 
-            "--ks-key-alias", DataHelper.instance.getAlias("android"),
-            "--ks-pass", `pass:${DataHelper.instance.getPassword("android")}`,
-            "--key-pass", `pass:${DataHelper.instance.getPassword("android")}`,
+            "--ks", certificateInfo.keystore, 
+            "--ks-key-alias", certificateInfo.alias,
+            "--ks-pass", `pass:${certificateInfo.keyStorePassword}`,
+            "--key-pass", `pass:${certificateInfo.keyPassword}`,
             "--v1-signing-enabled", "true",
             "--v2-signing-enabled", "true",
             apkfile

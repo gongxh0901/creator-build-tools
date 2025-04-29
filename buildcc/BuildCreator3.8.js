@@ -30,7 +30,7 @@ class BuildCreator3_8 {
         // 构建成功后 如果需要 执行热更新manifest文件生成
 
         let platform = DataHelper.instance.getChannelPlatform(channel);
-        if (platform === "ios" || platform === "android" || platform === "ohos") {
+        if (platform === "ios" || platform === "android" || platform === "harmonyos-next") {
             // 修改main.js文件 插入热更新代码
             this.modifyMainJs(platform, version);
 

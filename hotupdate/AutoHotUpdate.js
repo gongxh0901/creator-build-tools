@@ -15,7 +15,7 @@ const DataHelper = require('../utils/DataHelper');
 const Result = require('./../utils/Result');
 const fs = require('fs');
 class AutoHotUpdate {
-    /** 平台 支持类型 ios, android, ohos */
+    /** 平台 支持类型 ios, android, harmonyos-next */
     _platform = "android";
     /** 游戏版本号 */
     _gameVersion = "0.0.1";
@@ -41,7 +41,7 @@ class AutoHotUpdate {
 
     /** 外部传入的参数 */
     async customStart(platform, gameVersion, hotVersion, isDebug, immediately, notification) {
-        if (!["ios", "android", "ohos"].includes(platform)) {
+        if (!["ios", "android", "harmonyos-next"].includes(platform)) {
             console.log(colors("red", `传入的平台类型[${platform}]不合法， 请检查参数`));
             return;
         }
@@ -67,7 +67,7 @@ class AutoHotUpdate {
      */
     async inputPlatform() {
         console.log("支持的平台类型:");
-        let allPlatforms = ["ios", "android", "ohos"];
+        let allPlatforms = ["ios", "android", "harmonyos-next"];
         for (let platform of allPlatforms) {
             console.log(colors("green", platform));
         }

@@ -6,6 +6,7 @@
 const path = require('path');
 const config = require('../config.json');
 const colors = require('./Colors');
+const Result = require('./Result');
 
 class DataHelper {
     static instance = new DataHelper();
@@ -181,7 +182,7 @@ class DataHelper {
             return true;
         }
         let platform = this.getChannelPlatform(channel);
-        if (platform === "ios" || platform === "android" || platform === "ohos") {
+        if (platform === "ios" || platform === "android" || platform === "harmonyos-next") {
             return true;
         }
         return false;
@@ -234,35 +235,33 @@ class DataHelper {
     }
 
     /** 
-     * 获取打包证书 keystore 路径 (针对android平台)
+     * 根据平台和是否debug获取秘钥配置信息
      * @param {string} platform 平台
-     * @returns {string} 绝对路径
+     * @param {boolean} isDebug 是否为调试模式
+     * @returns {object} 秘钥配置信息 根据平台不同，配置不同
+     * android: 
+     * {
+     *      "keystore": "", // 秘钥路径  相对于打包工具的路径 或者绝对路径
+     *      "keyStorePassword": "A123456",  // 秘钥库密码
+     *      "alias": "abcd",  // 秘钥别名
+     *      "keyPassword": "A123456"  // 秘钥密码
+     * }
+     * harmonyos-next: 和鸿蒙项目中的证书配置一一对应
+     * {
+     *      "certpath": "", // 证书路径 相对于打包工具的路径 或者绝对路径
+     *      "storePassword": "", // 证书密码
+     *      "keyAlias": "", // 别名
+     *      "keyPassword": "", // 私钥密码
+     *      "profile": "", // 证书profile p7b
+     *      "signAlg": "", // 签名算法
+     *      "storeFile": "" // 证书文件 p12
+     * }
      */
-    getKeystore(platform) {
-        let keystore = this.__platformInfo(platform).keystore;
-        // 如果是绝对路径
-        if (path.isAbsolute(keystore)) {
-            return keystore;
+    getCertificateInfo(platform, isDebug) {
+        if (platform === "android" || platform === "harmonyos-next") {
+            return this.__platformInfo(platform)?.certificate?.[isDebug ? "debug" : "release"];
         }
-        return path.join(this.path, keystore);
-    }
-
-    /** 
-     * 获取打包证书别名
-     * @param {string} platform 平台
-     * @returns {string} 
-     */
-    getAlias(platform) {
-        return this.__platformInfo(platform).alias;
-    }
-
-    /** 
-     * 获取打包证书密码 (针对android平台的 keystore)
-     * @param {string} platform 平台
-     * @returns {string}
-     */
-    getPassword(platform) {
-        return this.__platformInfo(platform).password;
+        return null;
     }
 
     /** 
@@ -377,6 +376,14 @@ class DataHelper {
      */
     getHotupdateManifest(platform) {
         return path.join(this.project, this.__hotupdateInfo(platform).manifest);
+    }
+
+    /**
+     * 鸿蒙平台热更新 manifest 文件 在build后的资源中的路径 相对于项目路径
+     * @returns {string} 返回绝对路径
+     */
+    getHotupdateManifestHarmony() {
+        return path.join(this.project, this.__hotupdateInfo("harmonyos-next").manifestHarmony);
     }
     /***************** 热更新相关配置获取 end ****************/
 
