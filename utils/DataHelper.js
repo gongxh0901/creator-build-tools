@@ -6,7 +6,6 @@
 const path = require('path');
 const config = require('../config.json');
 const colors = require('./Colors');
-const Result = require('./Result');
 
 class DataHelper {
     static instance = new DataHelper();
@@ -383,7 +382,7 @@ class DataHelper {
      * @returns {string} 返回绝对路径
      */
     getHotupdateManifestHarmony() {
-        return path.join(this.project, this.__hotupdateInfo("harmonyos-next").manifestHarmony);
+        return path.join(this.project, this.__hotupdateInfo("harmonyos-next")['manifest-harmony']);
     }
     /***************** 热更新相关配置获取 end ****************/
 
