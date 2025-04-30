@@ -11,47 +11,24 @@ const OssUpload = require('./../oss/AliyOssUpload')
 const Result = require('./../utils/Result');
 const colors = require('./../utils/Colors');
 const DataHelper = require('../utils/DataHelper');
-const NotificationFeishu = require('./../NotificationFeishu/NotificationFeishu');
 
 class BuildAlipay {
-    static _version = "";
-    static _isDebug = false;
-    static _message = "";
-    /** 是否发送飞书通知 */
-    static _isSend = true;
+    _version = "";
+    _message = "";
+    _isDebug = false;
+    _project = "";
 
-    /** 支付宝小游戏项目地址 */
-    static _project = path.join(DataHelper.instance.project, DataHelper.instance.getPlatformBuildPath("alipay-mini-game"));
-
-    static async start(version, isDebug, message, isSend) {
+    /** 初始化支付宝打包工具 */
+    constructor(version, message, isDebug) {
         this._version = version;
-        this._isDebug = isDebug;
         this._message = message;
-        this._isSend = isSend;
+        this._isDebug = isDebug;
 
-        try {
-            // 先上传资源到cdn
-            await this.uploadRes();
-            // 上传项目
-            let qrCodeUrl = await this.uploadProject();
-            console.log(colors("green", "支付宝小游戏项目上传成功！"));
-
-            await this.downloadQrcode(qrCodeUrl);
-            console.log(colors("green", "二维码下载完成"));
-
-            if (this._isSend) {
-                await this.sendNotification();
-            }
-        } catch (error) {
-            console.log(colors("red", "支付宝小游戏打包流程失败"), error);
-            throw error;
-        } finally {
-            process.exit(0);
-        }
+        this._project = path.join(DataHelper.instance.project, DataHelper.instance.getPlatformBuildPath("alipay-mini-game"));
     }
 
     /** 上传远程资源到cdn */
-    static async uploadRes() {
+    async uploadRes() {
         // 本地 remote 文件夹的位置
         let remote = path.join(this._project, 'remote');
         if (!fs.existsSync(remote)) {
@@ -59,18 +36,43 @@ class BuildAlipay {
             return;
         }
         let oss = new OssUpload(remote, DataHelper.instance.getRemoteUrl("alipay", this._isDebug, this._version));
+        await oss.upload();
+        // 资源上传完成后 删除本地文件
+        fs.rmSync(remote, { recursive: true, force: true });
+        console.log(colors("green", "支付宝小游戏资源上传完成"));
+    }
 
+    /** 上传项目 成功后返回体验版二维码 */
+    async uploadProject() {
         try {
-            await oss.upload();
-            // 资源上传完成后 删除本地文件
-            fs.rmSync(remote, { recursive: true, force: true });
+            let appId = DataHelper.instance.getAppid("alipay-mini-game");
+            console.log(colors("yellow", "支付宝小游戏appid"), appId);
+            /** 检查并删除当前指定的版本 */
+            await this.checkAndDeleteVersion();
+            // 上传项目
+            let result = await minidev.upload({
+                project: this._project,
+                appId: appId,
+                /** 上传成功后自动设置为体验版 */
+                experience: true,
+                version: this._version,
+                /** 上传时删除指定版本号 */
+                deleteVersion: this._version,
+                /** 是否小游戏 */
+                isGame: true,
+                /** 版本描述，用于在开放平台显示 */
+                versionDescription: this._message
+            });
+            // 下载二维码
+            await this.downloadQrcode(result.experienceQrCodeUrl);
+
         } catch (error) {
-            console.log(colors("red", "支付宝小游戏资源上传失败"), error);
             throw error;
         }
     }
 
-    static async checkAndDeleteVersion() {
+    /** 检查并删除当前指定的版本 */
+    async checkAndDeleteVersion() {
         let appId = DataHelper.instance.getAppid("alipay-mini-game");
         const version_list = await minidev.app.getUploadedVersionList({
             appId: appId
@@ -90,37 +92,11 @@ class BuildAlipay {
         }
     }
 
-    /** 上传项目 成功后返回体验版二维码 */
-    static async uploadProject() {
-        try {
-            let appId = DataHelper.instance.getAppid("alipay-mini-game");
-            console.log(colors("yellow", "支付宝小游戏appid"), appId);
-            await this.checkAndDeleteVersion();
-            // 上传项目
-            let result = await minidev.upload({
-                project: this._project,
-                appId: appId,
-                /** 上传成功后自动设置为体验版 */
-                experience: true,
-                version: this._version,
-                /** 上传时删除指定版本号 */
-                deleteVersion: this._version,
-                /** 是否小游戏 */
-                isGame: true,
-                /** 版本描述，用于在开放平台显示 */
-                versionDescription: this._message
-            });
-            return result.experienceQrCodeUrl;
-        } catch (error) {
-            throw error;
-        }
-    }
-
     /** 下载二维码 */
-    static async downloadQrcode(url) {
+    async downloadQrcode(url) {
         try {
             // 确保目录存在
-            const qrcodePath = path.join(__dirname, '../qrcode');
+            const qrcodePath = path.join(DataHelper.instance.path, 'qrcode');
             if (!fs.existsSync(qrcodePath)) {
                 fs.mkdirSync(qrcodePath, { recursive: true });
             }
@@ -166,12 +142,6 @@ class BuildAlipay {
             console.error('下载二维码出错:', error);
             throw error;
         }
-    }
-
-    static async sendNotification() {
-        // 脚本文件地址
-        let imagePath = path.join(__dirname, "..", "qrcode", "ali_qrcode.png");
-        await new NotificationFeishu().miniGameSend("alipay", this._version, imagePath, this._isDebug);
     }
 }
 

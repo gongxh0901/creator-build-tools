@@ -15,6 +15,7 @@ const BuildAlipay = require('./aliypay/BuildAlipay');
 const BuildBytedance = require('./bytedance/BuildBytedance');
 const BuildHarmony = require('./harmony/BuildHarmony');
 const Result = require('./utils/Result');
+const NotificationFeishu = require('./NotificationFeishu/NotificationFeishu')
 
 console.log("filename", __filename);
 console.log("dirname",__dirname);
@@ -28,9 +29,24 @@ class AutoBuild {
     _channel = "official";
     _debug = false;
     /** 微信 和 抖音小游戏 上传机器人编号 1-24 */
-    _wechatRobot = 1;
+    _robot = 1;
     _notificationFeishu = true;
     _message = "";
+
+    /** 根据平台类型绑定对应的构建流程 */
+    _platformFlowBindFuncs = {}
+
+    constructor() {
+        this._platformFlowBindFuncs = {
+            ['android']: this.buildAndroidFlow,
+            // ['ios']: this.buildIosFlow,
+            ['harmonyos-next']: this.buildHarmonyNextFlow,
+            ['wechatgame']: this.buildWechatFlow,
+            ['bytedance-mini-game']: this.buildBytedanceFlow,
+            ['alipay-mini-game']: this.buildAlipayFlow,
+            // ['huawei-quick-game']: this.buildHuaweiQuickFlow,
+        }
+    }
 
     async start() {
         await this.inputChannel();
@@ -55,14 +71,14 @@ class AutoBuild {
             console.log(colors("red", "版本号不合法:" + version));
             return;
         }
-        this._buildCode = build;
-        if (!/^\d+$/.test(build)) {
-            console.log(colors("red", "构建号不合法:" + build));
+        this._buildCode = parseInt(build);
+        if (!/^\d+$/.test(this._buildCode)) {
+            console.log(colors("red", "构建号不合法:" + this._buildCode));
             return;
         }
         this._debug = !!debug;
 
-        this._wechatRobot = robot;
+        this._robot = robot;
         if (robot < 1 || robot > 24) {
             console.log(colors("red", "上传机器人编号不合法:" + robot));
             return;
@@ -150,7 +166,7 @@ class AutoBuild {
                 console.log(colors("red", "输入的机器人编号不合法，请重新输入"));
                 await this.inputWechatRobot();
             } else {
-                this._wechatRobot = parseInt(input);
+                this._robot = parseInt(input);
             }
         }
     }
@@ -186,7 +202,7 @@ class AutoBuild {
         console.log(colors("magenta", "构建号: " + this._buildCode));
         console.log(colors("magenta", "版本描述: " + this._message));
         console.log(colors("magenta", "是否开启调试模式: " + this._debug));
-        console.log(colors("magenta", "微信上传机器人编号: " + this._wechatRobot));
+        console.log(colors("magenta", "微信上传机器人编号: " + this._robot));
         console.log(colors("magenta", "是否开启飞书通知: " + this._notificationFeishu));
 
         if (this._channel == "all") {
@@ -253,46 +269,105 @@ class AutoBuild {
         }
     }
 
-    /** 构建单渠道 */
+    /** 渠道构建 */
     async buildSingleChannel(channel) {
-        let platform = DataHelper.instance.getChannelPlatform(channel);
         try {
             await BuildCreator3_8.start(channel, this._version, this._debug);
-        } catch (result) {
-            console.log(colors("red", `构建[${channel}]失败 code:${result.code} message:${result.message}`));
-            throw result;
-        }
+            // 根据渠道获取平台类型
+            let platform = DataHelper.instance.getChannelPlatform(channel);
 
-        try {
-            if (platform === "wechatgame") {
-
-                await BuildWechat.start(this._version, this._wechatRobot, this._debug, this._message, this._notificationFeishu);
-            } else if (platform === "huawei-quick-game") {
-    
-                throw new Result(-1, `渠道[${channel}]平台类型:${platform}打包功能未实现`);
-            } else if (platform === "bytedance-mini-game") {
-    
-                await BuildBytedance.start(this._version, this._wechatRobot, this._debug, this._message, this._notificationFeishu);
-            } else if (platform === "alipay-mini-game") {
-
-                await BuildAlipay.start(this._version, this._debug, this._message, this._notificationFeishu);
-            } else if (platform == "ios") {
-    
-                throw new Result(-1, `渠道[${channel}]平台类型:${platform}打包功能未实现`);
-            } else if (platform === "harmonyos-next") {
-    
-                await BuildHarmony.start(this._version, this._buildCode, this._debug, this._notificationFeishu);
-            } else if (platform === "android") {
-    
-                // 构建安卓apk
-                await BuildAndroid.start(channel, this._version, this._buildCode, this._debug, this._notificationFeishu);
+            if (this._platformFlowBindFuncs[platform]) {
+                await this._platformFlowBindFuncs[platform].call(this, channel);
             } else {
-
-                throw new Result(-1, `渠道[${channel}]平台类型:${platform}打包功能未实现`);
+                throw new Result(-1, '打包流程未绑定 通过 AutoBuild 中的 constructor 去绑定');
             }
-        } catch (error) {
-            console.log(colors("red", `打包[${channel}]失败 message:${error.message}`));
-            throw error;
+        } catch (result) {
+            console.log(colors("red", `渠道[${channel}]打包失败 code:${result.code} message:${result.message}`));
+        }
+    }
+
+    /** 构建android渠道 */
+    async buildAndroidFlow(channel) {
+        let build = new BuildAndroid(channel, this._version, this._buildCode, this._debug);
+        // 修改版本号
+        build.modifyGameVersion();
+        // 构建apk
+        await build.buildApk();
+        // 拷贝apk到指定目录 publish 目录
+        await build.copyApkToPublish();
+        // 给apk签名
+        await build.signApk();
+        // 上传apk到cdn
+        await build.ossUpload();
+        // 发送飞书通知
+        if (this._notificationFeishu) {
+            await build.notificationFeishu();
+        }
+        // 打印安卓打包完成信息
+        console.log(colors("green", "安卓打包完成, apk文件路径:" + path.join(DataHelper.instance.project, 'publish', build.getApkName())));
+    }
+
+    /** 鸿蒙Next打包流程 */
+    async buildHarmonyNextFlow() {
+        let build = new BuildHarmony(this._version, this._buildCode, this._debug);
+        // 修改鸿蒙项目版本号
+        build.modifyGameVersion();
+        // 构建鸿蒙app
+        await build.buildApp();
+        // 上传鸿蒙app和hap到cdn
+        await build.ossUpload();
+        // 发送飞书通知 
+        if (this._notificationFeishu) {
+            await build.notificationFeishu();
+        }
+        // 打印鸿蒙打包完成信息
+        console.log(colors("green", "鸿蒙打包完成, hap文件路径:" + path.join(DataHelper.instance.project, 'publish', build.getHapName())));
+        if (!this._debug) {
+            console.log(colors("green", "鸿蒙打包完成, app文件路径:" + path.join(DataHelper.instance.project, 'publish', build.getAppName())));
+        }
+    }
+
+    /** 支付宝小游戏打包流程 */
+    async buildAlipayFlow() {
+        let build = new BuildAlipay(this._version, this._message, this._debug);
+        // 上传支付宝远程资源到cdn
+        await build.uploadRes();
+        // 上传支付宝小游戏到开发者后台 并且保存体验二维码到qrcode目录
+        await build.uploadProject();
+
+        // 发送飞书通知
+        if (this._notificationFeishu) {
+            let imagePath = path.join(DataHelper.instance.path, "qrcode", "ali_qrcode.png");
+            await new NotificationFeishu().miniGameSend("alipay", this._version, imagePath, this._debug);
+        }
+    }
+
+    /** 抖音小游戏打包流程 */
+    async buildBytedanceFlow() {
+        let build = new BuildBytedance(this._version, this._message, this._robot, this._debug);
+        // 上传抖音远程资源到cdn
+        await build.uploadRes();
+        // 上传抖音小游戏到开发者后台 并且保存体验二维码到qrcode目录
+        await build.uploadProject();
+        // 发送飞书通知
+        if (this._notificationFeishu) {
+            let imagePath = path.join(DataHelper.instance.path, "qrcode", "bytedance_qrcode.png");
+            await new NotificationFeishu().miniGameSend("bytedance", this._version, imagePath, this._debug);
+        }
+    }
+
+    /** 微信小游戏打包流程 */
+    async buildWechatFlow() {
+        let build = new BuildWechat(this._version, this._message, this._robot, this._debug);
+        // 上传微信远程资源到cdn
+        await build.uploadRes();
+        // 上传项目到微信后台
+        await build.uploadProject();
+
+        // 发送飞书通知 因为微信不支持自动修改体验版本 这里是提前把二维码放到目录下了
+        if (this._notificationFeishu) {
+            let imagePath = path.join(DataHelper.instance.path, "qrcode", "wechat_qrcode.jpg");
+            await new NotificationFeishu().miniGameSend("wechatgame", this._version, imagePath, this._debug);
         }
     }
 }

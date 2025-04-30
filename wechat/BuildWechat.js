@@ -8,61 +8,41 @@ const path = require('path')
 const fs = require('fs')
 const OssUpload = require('./../oss/AliyOssUpload')
 const colors = require('./../utils/Colors')
-const NotificationFeishu = require('./../NotificationFeishu/NotificationFeishu')
 const DataHelper = require('../utils/DataHelper')
 class BuildWechat {
-    static _version = "";
-    static _robot = "";
-    static _isDebug = false;
-    static _message = "";
-    /** 是否发送飞书通知 */
-    static _isSend = true;
+    _version = "";
+    _message = "";
+    _robot = 0;
+    _isDebug = false;
+    _project = "";
 
-    /** 微信小游戏项目地址 */
-    static _project = path.join(DataHelper.instance.project, DataHelper.instance.getPlatformBuildPath("wechatgame"));
-
-    static async start(version, robot, isDebug, message, isSend) {
+    /** 初始化抖音小游戏打包工具 */
+    constructor(version, message, robot, isDebug) {
         this._version = version;
+        this._message = message;
         this._robot = robot;
         this._isDebug = isDebug;
-        this._message = message;
-        this._isSend = isSend;
 
-        try {
-            // 先上传资源到cdn
-            await this.uploadRes();
-            // 上传项目
-            await this.uploadProject();
-            console.log(colors("green", "微信小游戏项目上传成功！"));
-
-            if (this._isSend) {
-                await this.notificationFeishu();
-            }
-        } catch (error) {
-            console.log(colors("red", "微信打包失败了"), error);
-        }
+        this._project = path.join(DataHelper.instance.project, DataHelper.instance.getPlatformBuildPath("wechatgame"));
     }
 
-    /** 上传远程资源到cdn */
-    static async uploadRes() {
+
+    /** 上传微信远程资源到cdn */
+    async uploadRes() {
         let remote = path.join(this._project, 'remote');
         if (!fs.existsSync(remote)) {
             console.log(colors("red", "微信小游戏远程资源不存在, 跳过上传"));
             return;
         }
         let oss = new OssUpload(remote, DataHelper.instance.getRemoteUrl("wechatgame", this._isDebug, this._version));
-
-        try {
-            await oss.upload();
-            // 资源上传完成后 删除本地文件
-            fs.rmSync(remote, { recursive: true, force: true });
-        } catch (error) {
-            console.log(colors("red", "微信小游戏资源上传失败"), error);
-            throw error;
-        }
+        await oss.upload();
+        // 资源上传完成后 删除本地文件
+        fs.rmSync(remote, { recursive: true, force: true });
+        console.log(colors("green", "微信小游戏资源上传完成"));
     }
 
-    static async uploadProject() {
+    /** 上传项目到微信后台 */
+    async uploadProject() {
         const project = new ci.Project({
             appid: DataHelper.instance.getAppid("wechatgame"),
             type: 'miniGame',
@@ -82,12 +62,6 @@ class BuildWechat {
             onProgressUpdate: console.log,
         })
         console.log(uploadResult)
-    }
-
-    static async notificationFeishu() {
-        // 脚本文件地址
-        let imagePath = path.join(__dirname, "..", "qrcode", "wechat_qrcode.jpg");
-        await new NotificationFeishu().miniGameSend("wechatgame", this._version, imagePath, this._isDebug);
     }
 }
 

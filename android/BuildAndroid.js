@@ -14,29 +14,39 @@ const NotificationFeishu = require('./../NotificationFeishu/NotificationFeishu')
 const DataHelper = require('../utils/DataHelper');
 
 class BuildAndroid {
-    static _channel = "";
-    static _versionCode = "";
-    static _buildCode = 0;
-    static _isDebug = false;
-    /** 是否发送飞书通知 */
-    static _isSend = true;
+    _channel = "";
+    _versionCode = "";
+    _buildCode = 0;
+    _isDebug = false;
 
-    static _apkname = "";
+    _apkname = "";
+    __project = "";
+    __native = "";
 
-    static __project = path.join(DataHelper.instance.project, DataHelper.instance.getPlatformBuildPath("android"));
-    static __native = path.join(DataHelper.instance.project, DataHelper.instance.getPlatformNativePath("android"));
-
-    static async start(channel, version, build, isDebug, isSend) {
+    constructor(channel, version, build, isDebug) {
         this._channel = channel;
         this._versionCode = version;
         this._buildCode = build;
         this._isDebug = isDebug;
-        this._isSend = isSend;
 
         // 把最终的apk文件名拼好
         this._apkname = `v${version}.${build}-${channel}-${isDebug ? 'debug' : 'release'}.apk`;
 
-        this.modifyGameVersion(version, build);
+        this.__project = path.join(DataHelper.instance.project, DataHelper.instance.getPlatformBuildPath("android"));
+        this.__native = path.join(DataHelper.instance.project, DataHelper.instance.getPlatformNativePath("android"));
+    }
+
+    getApkName() {
+        return this._apkname;
+    }
+
+    async start(channel, version, build, isDebug, isSend) {
+        this._channel = channel;
+        this._versionCode = version;
+        this._buildCode = build;
+        this._isDebug = isDebug;
+
+        // this.modifyGameVersion(version, build);
         await this.buildApk(isDebug);
         await this.copyApkToPublish();
         await this.signApk();
@@ -53,11 +63,9 @@ class BuildAndroid {
     }
 
     /** 修改版本号 */
-    static modifyGameVersion(version, build) {
+    modifyGameVersion() {
         // 找到项目路径
         console.log(colors("magenta", "android原生项目路径:" + this.__native));
-        // console.log(colors("yellow", "需要实现 修改游戏版本号:" + version + " " + build));
-
         // 修改build.gradle文件
         // 找到 versionCode和versionName所在的行 修改后替换，然后写入文件
         let buildGradle = path.join(this.__native, 'build.gradle');
@@ -68,14 +76,14 @@ class BuildAndroid {
         console.log(colors("green", "versionName:" + versionNameLine[1]));
 
         // 替换versionCode和versionName
-        buildGradleContent = buildGradleContent.replace(versionCodeLine[0], 'versionCode ' + build);
-        buildGradleContent = buildGradleContent.replace(versionNameLine[0], 'versionName "' + version + '"');
+        buildGradleContent = buildGradleContent.replace(versionCodeLine[0], 'versionCode ' + this._buildCode);
+        buildGradleContent = buildGradleContent.replace(versionNameLine[0], 'versionName "' + this._versionCode + '"');
         fs.writeFileSync(buildGradle, buildGradleContent);
-        console.log(colors("green", "版本号修改成功 version:" + version + " build:" + build));
+        console.log(colors("green", "版本号修改成功 version:" + this._versionCode + " build:" + this._buildCode));
     }
 
     /** 构建apk */
-    static async buildApk(isDebug) {
+    async buildApk() {
         // 找到项目路径
         let project = path.join(DataHelper.instance.project, DataHelper.instance.getPlatformBuildPath("android"));
         console.log(colors("magenta", "android工程路径:" + project));
@@ -88,7 +96,7 @@ class BuildAndroid {
         console.log(colors("green", "清理构建缓存完成"));
 
         // 执行gradlew命令 打包apk
-        let options = [isDebug ? 'assembleDebug' : 'assembleRelease'];
+        let options = [this._isDebug ? 'assembleDebug' : 'assembleRelease'];
         let result = await RunCommand('./gradlew', options);
         if (result.code == 0) {
             console.log(colors("green", "打包安卓apk成功"));
@@ -102,7 +110,7 @@ class BuildAndroid {
     }
 
     /** 拷贝apk到指定目录 并重命名 */
-    static async copyApkToPublish() {
+    async copyApkToPublish() {
         // 找到apk路径
         let mode = this._isDebug ? 'debug' : 'release';
 
@@ -130,7 +138,7 @@ class BuildAndroid {
     }
 
     /** 安卓包签名 */
-    static async signApk() {
+    async signApk() {
         let apkfile = path.join(DataHelper.instance.project, 'publish', this._apkname);
         // 检查文件是否存在
         if (!fs.existsSync(apkfile)) {
@@ -194,7 +202,7 @@ class BuildAndroid {
         }
     }
 
-    static async ossUpload() {
+    async ossUpload() {
         let publish = DataHelper.instance.publish;
         if (!publish.endsWith('/')) {
             publish += '/';
@@ -203,7 +211,7 @@ class BuildAndroid {
         await oss.upload();
     }
 
-    static async notificationFeishu() {
+    async notificationFeishu() {
         let ossUrl = DataHelper.instance.ossUrl;
         let url = ossUrl + DataHelper.instance.publish;
         if (!url.endsWith('/')) {

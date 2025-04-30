@@ -91,12 +91,12 @@
             "certificate": {
                 "debug": {
                     "storePassword": "Abc123456",
-                    "certpath": "/Users/gongxh/Desktop/harmonyTest/debug.cer",
+                    "certpath": "./cert/harmony/debug.cer",
                     "keyAlias": "abcd",
                     "keyPassword": "Abc123456",
-                    "profile": "/Users/gongxh/Desktop/harmonyTest/harmonyTestProfileDebug.p7b",
+                    "profile": "./cert/harmony/harmonyTestProfileDebug.p7b",
                     "signAlg": "SHA256withECDSA",
-                    "storeFile": "/Users/gongxh/Desktop/harmonyTest/harmonyTest.p12"
+                    "storeFile": "./cert/harmony/harmonyTest.p12"
                 },
                 "release": {
                     "storePassword": "000000195109A27949A8FFBB4BEFFCEFD4919556F185AF0C9618D20C4F7CC4D9F92BB336732F418915",
@@ -112,8 +112,8 @@
         {
             "platform": "wechatgame",
             "build": "./build/wechatgame",
-            "appid": "wx1368a27f1fde7237",
-            "privateKey": "./cert/wechat/private.wx1368a27f1fde7237.key",
+            "appid": "wx912fdb369bfac921",
+            "privateKey": "./cert/wechat/private.wx912fdb369bfac921.key",
             "remote": "test"
         },
         {
