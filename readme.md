@@ -86,7 +86,8 @@ creator项目构建 --> 生成并替换热更新比对文件manifest --> 上传�
        "creator": "/Applications/Cocos/Creator/3.8.6/CocosCreator.app/Contents/MacOS/CocosCreator",
      	// creator项目路径，换成自己的
        "project": "/Users/**/work/kunpo-lib/KunpoDemo",
-   
+     	// 自定义引擎的绝对路径（不配置 或 "" 表示没有自定义引擎）
+   		"customEngine": "/Users/***/work/engine/cocos-engine",
      	// 我这里用的是阿里云 其他配置见 环境变量配置
        "oss": {
            // 原生平台的包上传到cdn上的路径
