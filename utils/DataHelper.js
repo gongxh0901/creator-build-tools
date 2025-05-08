@@ -72,6 +72,11 @@ class DataHelper {
         return path.join(__dirname, '..');
     }
 
+    /** 自定义引擎路径 */
+    get customEngine() {
+        return config.customEngine || '';
+    }
+
     /***************** cdn相关配置获取 begin ****************/
     /** 
      * 获取oss的域名

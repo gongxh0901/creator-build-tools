@@ -1,6 +1,7 @@
 {
     "creator": "/Applications/Cocos/Creator/3.8.6/CocosCreator.app/Contents/MacOS/CocosCreator",
     "project": "/Users/gongxh/work/kunpo-lib/KunpoDemo",
+    "customEngine": "/Users/gongxh/work/engine/cocos-engine",
 
     "cdnTips": "cdn地址 放远程资源用: [dev/prod] + platform + [v版本号]" ,
     "oss": {

@@ -80,6 +80,10 @@ class BuildCreator3_8 {
             "--project", project,
             "--build", buildParam
         ];
+        // 自定义引擎配置
+        if (DataHelper.instance.customEngine) {
+            options.push("--engine", DataHelper.instance.customEngine);
+        }
         let result = await RunCommand(creator, options);
         if (result.code == 36) {
             console.log("构建成功");
