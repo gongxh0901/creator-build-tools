@@ -57,7 +57,12 @@ class BuildWechat {
             desc: this._message,
             robot: this._robot,
             setting: {
-                es6: true,
+                es6: true, // 对应于微信开发者工具的 "ES6 转 ES5"
+                es7: true, // 对应于微信开发者工具的 "增强编译"
+                // disableUseStrict: false, // "增强编译" 开启时，是否禁用JS文件严格模式，默认为false
+                minifyJS: true, // 上传时压缩 JS 代码
+                minify: true, // 上传时压缩所有代码，对应于微信开发者工具的 "上传时压缩代码"
+                // codeProtect: true, // 对应于微信开发者工具的 "上传时进行代码保护"
             },
             onProgressUpdate: console.log,
         })
