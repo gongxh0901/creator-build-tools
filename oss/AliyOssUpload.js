@@ -66,12 +66,17 @@ class AliyOssUpload {
         while (this._files.length > 0) {
             let file = this._files[0];
             let absolutePath = path.join(this._local, file);
-            // console.log("上传文件", absolutePath, " 远程路径", `${this._remote}/${file}`);
+            
+            // 将Windows路径分隔符转换为OSS兼容的正斜杠
+            let ossRemoteFile = file.replace(/\\/g, '/');
+            let ossRemotePath = `${this._remote}/${ossRemoteFile}`;
+            
+            // console.log("上传文件", absolutePath, " 远程路径", ossRemotePath);
             const options = {
                 'timeout': 5 * 60 * 1000,
             }
             try {
-                let result = await this._client.put(`${this._remote}/${file}`, absolutePath, options);
+                let result = await this._client.put(ossRemotePath, absolutePath, options);
                 if (result.res.status == 200) {
                     this._files.shift();
                     this._count++;
@@ -126,6 +131,10 @@ class AliyOssUpload {
             }
             result = result + path.basename(local);
         }
+        
+        // 确保远程路径使用正斜杠
+        result = result.replace(/\\/g, '/');
+        
         return result;
     }
 
