@@ -4,9 +4,9 @@
  * @Description: 
  */
 
-const Mode = {
+const ModeType = {
     DEBUG: "debug",
     RELEASE: "release",
 };
 
-module.exports = { Mode };
+module.exports = { ModeType };

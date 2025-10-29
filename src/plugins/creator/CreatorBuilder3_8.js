@@ -9,9 +9,10 @@ const path = require('path');
 const CreatorBuilderBase = require('../base/CreatorBuilder');
 const Result = require('../../utils/Result');
 const DataHelper = require('../../utils/DataHelper');
-const { Mode } = require('../../header/Header');
+const { ModeType } = require('../../header/Header');
 const { RunCommand } = require('../../utils/Command');
 const Logger = require('../../utils/Logger');
+const ManifestGenerator = require('../hotupdate/ManifestGenerator');
 class CreatorBuilder3_8 extends CreatorBuilderBase {
 
     async onBuildBefore() {
@@ -39,7 +40,7 @@ class CreatorBuilder3_8 extends CreatorBuilderBase {
         // 构建打包参数
         let buildParam = `stage=build;platform=${this._platform}`;
 
-        if (this._mode === Mode.DEBUG) {
+        if (this._modeType === ModeType.DEBUG) {
             buildParam += ";debug=true";
         } else {
             buildParam += ";debug=false";
@@ -47,7 +48,7 @@ class CreatorBuilder3_8 extends CreatorBuilderBase {
 
         // 如果是小游戏平台 设置server地址
         if (DataHelper.platforms.isRemote(this._platform)) {
-            buildParam += `;server=${DataHelper.oss.getRemoveUrl(this._mode, this._platform, this._version)}`;
+            buildParam += `;server=${DataHelper.oss.getRemoveUrl(this._modeType, this._platform, this._version)}`;
         }
 
         let buildConfigPath = DataHelper.channels.getBuilderConfig(this._channel);
@@ -64,19 +65,18 @@ class CreatorBuilder3_8 extends CreatorBuilderBase {
             options.push("--engine", DataHelper.base.customEngine);
         }
 
-        //TODO:暂时注释掉
-        // let result = await RunCommand(this._creator, options);
-        // if (result.code !== 36) {
-        //     return result;
-        // }
+        // 执行构建命令
+        let result = await RunCommand(this._creator, options);
+        if (result.code !== 36) {
+            return result;
+        }
         return new Result(0, `构建完成`);
     }
 
     async onBuildAfter() {
         // 处理热更新的manifest文件
         // 构建成功后 如果需要 执行热更新manifest文件生成
-        let platform = DataHelper.channels.getPlatform(this._channel);
-        let needHotUpdate = DataHelper.hotupdate.isNeed(platform);
+        let needHotUpdate = DataHelper.hotupdate.isNeed(this._platform);
         if (needHotUpdate) {
             // 修改main.js文件 插入热更新代码
             let modifyMainJsResult = await this.modifyMainJs();
@@ -85,9 +85,12 @@ class CreatorBuilder3_8 extends CreatorBuilderBase {
             }
 
             // 生成manifest文件
-            // new ManifestGenerator().start(version, "0", platform, isDebug);
+            const result = await new ManifestGenerator(this._version, this._resVersion, this._platform, this._modeType).start();
+            if (result.code !== 0) {
+                return result;
+            }
         } else {
-            Logger.log(`平台【${platform}】不需要热更新 跳过修改main.js文件和生成manifest文件`);
+            Logger.log(`平台【${this._platform}】不需要热更新 跳过修改main.js文件和生成manifest文件`);
         }
         return new Result(0, "构建后处理完成");
     }
@@ -122,4 +125,4 @@ class CreatorBuilder3_8 extends CreatorBuilderBase {
 
 module.exports = CreatorBuilder3_8;
 
-new CreatorBuilder3_8().start("taptap", "1.0.0", "debug");
+new CreatorBuilder3_8("taptap", "1.0.0", "debug", "0").start();
