@@ -1,0 +1,8 @@
+[
+    {
+        "platform": "对应platforms.json文件中配置的platform参数 原生平台需要, 例如（android/ios/harmonyos-next）",
+        "dest": "热更新project.manifest文件的保存路径 相对于creator项目根目录 一般是 ./assets/",
+        "src": "项目构建后生成的资源路径 相对于creator项目根目录 用来生成热更新manifest文件 例如: ./build/android/assets",
+        "manifest": "项目构建后project.manifest所在的路径，会递归查找 .manifest 后缀的文件，直到找到为止 相对项目根目录 例如: ./build/android/assets/assets/main/native"
+    }
+]

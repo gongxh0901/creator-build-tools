@@ -1,0 +1,56 @@
+
+[
+    {
+        "platform": "android",
+        "certificate": {
+            "debug": {
+                "cert": "android平台debug包用的证书 绝对路径",
+                "storePassword": "证书密码",
+                "alias": "证书别名",
+                "keyPassword": "密码"
+            },
+            "release": {
+                "cert": "android平台正式包用的证书 绝对路径",
+                "storePassword": "证书密码",
+                "alias": "证书别名",
+                "keyPassword": "密码"
+            }
+        }
+    },
+    {
+        "platform": "harmonyos-next",
+        "certificate": {
+            "debug": {
+                "cert": "鸿蒙平台debug包用的证书 cer文件的绝对路径",
+                "storePassword": "证书密码",
+                "alias": "证书别名",
+                "keyPassword": "密码",
+                "profile": "鸿蒙平台debug包用的证书 p7b文件的绝对路径",
+                "signAlg": "签名算法",
+                "storeFile": "鸿蒙平台debug包用的证书 p12文件的绝对路径"
+            },
+            "release": {
+                "cert": "./cert/harmony/release.cer",
+                "storePassword": "证书密码",
+                "alias": "证书别名",
+                "keyPassword": "密码",
+                "profile": "鸿蒙平台正式包用的证书 p7b文件的绝对路径",
+                "signAlg": "签名算法",
+                "storeFile": "鸿蒙平台正式包用的证书 p12文件的绝对路径"
+            }
+        }
+    },
+    {
+        "platform": "wechatgame",
+        "appid": "微信小游戏appid",
+        "privateKey": "微信小游戏上传用到的私钥 绝对路径"
+    },
+    {
+        "platform": "alipay-mini-game",
+        "appid": "支付宝小游戏appid"
+    },
+    {
+        "platform": "bytedance-mini-game",
+        "appid": "抖音小游戏appid"
+    }
+]

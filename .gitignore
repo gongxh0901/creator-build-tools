@@ -8,3 +8,5 @@ node_modules/
 cert/
 qrcode/
 local/
+
+config/

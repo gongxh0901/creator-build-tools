@@ -1,0 +1,5 @@
+{
+    "creator": "/Applications/Cocos/Creator/3.8.6/CocosCreator.app/Contents/MacOS/CocosCreator",
+    "project": "creator项目绝对路径",
+    "customEngine": "自定义引擎的绝对路径（不配置 或 空字符串 表示没有自定义引擎）"
+}

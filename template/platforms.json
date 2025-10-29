@@ -1,0 +1,9 @@
+
+[
+    {
+        "platform": "平台类型 对应creator配置文件中的 platform 参数 （android/ios/harmonyos-next/wechatgame/alipay-mini-game/bytedance-mini-game/huawei-quick-game）",
+        "native": "原生工程路径 相对于creator项目根目录",
+        "build": "编译输出的工程路径 相对于creator项目根目录 原生平台需要",
+        "isRemote": "是否需要配置远程资源路径 bool值 一般小游戏需要是true"
+    }
+]

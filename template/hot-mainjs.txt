@@ -1,0 +1,44 @@
+// 插入热更新代码到 main.js 文件顶部
+(function () {
+    if (typeof window.jsb === 'object') {
+        // 保存的版本号
+        let saveVersion = localStorage.getItem('hotupdate::version');
+        // 保存的搜索路径
+        let searchPaths = localStorage.getItem('hotupdate::searchpaths');
+        // 打包时的版本号
+        let version = "0.0.1";
+        if (!saveVersion || saveVersion != version ) {
+            console.log('版本不同，清理资源搜索路径 游戏版本号:' + version + ' 保存的版本号:' + saveVersion);
+            localStorage.setItem('hotupdate::searchpaths', null);
+            searchPaths = null;
+        }
+        console.log('保存的搜索路径:' + searchPaths);
+        if (searchPaths) {
+            let paths = JSON.parse(searchPaths);
+            jsb.fileUtils.setSearchPaths(paths);
+
+            let fileList = [];
+            let storagePath = paths[0] || '';
+            let tempPath = storagePath + '_temp/';
+            let baseOffset = tempPath.length;
+
+            if (jsb.fileUtils.isDirectoryExist(tempPath) && !jsb.fileUtils.isFileExist(tempPath + 'project.manifest.temp')) {
+                jsb.fileUtils.listFilesRecursively(tempPath, fileList);
+                fileList.forEach(srcPath => {
+                    let relativePath = srcPath.substr(baseOffset);
+                    let dstPath = storagePath + relativePath;
+
+                    if (srcPath[srcPath.length] == '/') {
+                        jsb.fileUtils.createDirectory(dstPath);
+                    } else {
+                        if (jsb.fileUtils.isFileExist(dstPath)) {
+                            jsb.fileUtils.removeFile(dstPath);
+                        }
+                        jsb.fileUtils.renameFile(srcPath, dstPath);
+                    }
+                })
+                jsb.fileUtils.removeDirectory(tempPath);
+            }
+        }
+    }
+})();

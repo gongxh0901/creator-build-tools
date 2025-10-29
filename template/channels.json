@@ -1,0 +1,8 @@
+[
+    {
+        "channel": "自定义的渠道类型 比如: TapTap",
+        "name": "自定义的渠道名称 比如: Tap渠道包",
+        "platform": "对应 platforms.json 文件中配置的 platform 参数",
+        "config": "通过 creator 导出的打包配置文件的绝对路径"
+    }
+]

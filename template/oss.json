@@ -1,0 +1,8 @@
+{
+    "ACCESS_KEY_ID": "自己的阿里云的 keyid",
+    "ACCESS_KEY_SECRET": "自己的阿里云的 keysecret",
+    "REGION": "oss的region",
+    "BUCKET": "oss的bucket",
+    
+    "REMOTE_URL": "资源服务器的地址 会根据此信息拼接路径, 用来放远程资源(+ dev/prod + platform + v版本号)  应用资源(+ dev/prod + app + v版本号)  热更新资源(+ dev/prod + hotupdate + v版本号) "
+}

@@ -1,11 +1,22 @@
 {
-  "type": "commonjs",
-  "dependencies": {
-    "ali-oss": "^6.22.0",
-    "minidev": "^2.2.5",
-    "miniprogram-ci": "1.9.17",
-    "progress": "^2.0.3",
-    "request": "^2.88.2",
-    "tt-minigame-ide-cli": "^2.0.14"
-  }
+    "name": "bit-cc-builder",
+    "type": "commonjs",
+    "version": "1.0.0",
+    "scripts": {
+        "dev": "node src/plugins/creator/CreatorBuilder3_8.js",
+
+        "build": "node AutoBuild.js",
+        "build:jenkins": "node src/bin/build-jenkins.js",
+
+        "hotupdate": "node AutoHotUpdate.js",
+        "hotupdate:jenkins": "node src/bin/hotupdate-jenkins.js"
+    },
+    "dependencies": {
+        "ali-oss": "^6.22.0",
+        "minidev": "^2.2.5",
+        "miniprogram-ci": "1.9.17",
+        "progress": "^2.0.3",
+        "request": "^2.88.2",
+        "tt-minigame-ide-cli": "^2.0.14"
+    }
 }
