@@ -3,6 +3,7 @@
     "type": "commonjs",
     "version": "1.0.0",
     "scripts": {
+        "test": "node src/test.js",
         "dev": "node src/plugins/creator/CreatorBuilder3_8.js",
         "dev:oss": "node src/plugins/upload/OssUpload.js",
         "build": "node AutoBuild.js",

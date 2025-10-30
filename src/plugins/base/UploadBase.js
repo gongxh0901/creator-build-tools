@@ -77,25 +77,21 @@ class UploadBase {
 
     /**
      * 开始上传
-     * @returns {Promise<Result>}
+     * @returns {Promise<void>}
      */
     async start() {
         try {
             await this.onInitClient();
-
-            let result = await this._startUpload();
-            Logger.blue(result.message);
-            return result;
+            await this._startUpload();
+            Logger.blue(`资源上传完成 成功上传【${this._total}】个文件。`);
         } catch (error) {
-
             Logger.error(`【资源上传中断】reason:${error.message}`);
-            return error;
+            throw error;
         }
     }
 
     /**
      * 初始化oss客户端
-     * @returns {Promise<Result>}
      */
     async onInitClient() {
         throw new Error("OssUpload onInitClient 方法未实现");
@@ -107,7 +103,7 @@ class UploadBase {
      * @param {string} remote 远程路径 (不包含域名的路径)
      * @param {{success: () => void, fail: (code: number, message: string) => void}} callback 回调
      */
-    onUploadFile(filepath, remote, callback) {
+    async onUploadFile(filepath, remote, callback) {
         throw new Error("OssUpload onUploadFile 方法未实现");
     }
 

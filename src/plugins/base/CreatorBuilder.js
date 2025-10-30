@@ -34,33 +34,21 @@ class CreatorBuilderBase {
 
     /**
      * 开始
-     * @returns {Promise<Result>}
      */
     async start() {
-        let result1 = await this.onBuildBefore();
-        if (result1.code !== 0) {
-            Logger.error(`onBuildBefore code:${result1.code} message:${result1.message}`);
-            return result1;
+        try {
+            await this.onBuildBefore();
+            await this.onBuild();
+            await this.onBuildAfter();
+        } catch (error) {
+            Logger.error(`构建失败 message:${error.message}`);
+            throw new Result(-1, `构建失败: ${error.message}`);
         }
-        let result2 = await this.onBuild();
-        if (result2.code !== 0) {
-            Logger.error(`onBuild code:${result2.code} message:${result2.message}`);
-            return result2;
-        }
-
-        let result3 = await this.onBuildAfter();
-        if (result3.code !== 0) {
-            Logger.error(`onBuildAfter code:${result3.code} message:${result3.message}`);
-            return result3;
-        }
-
-        return new Result(0, "构建成功");
     }
 
     /** 
      * 构建前
      * 需要子类实现
-     * @returns {Promise<Result>}
      */
     async onBuildBefore() {
         throw new Error("onBuildBefore 方法未实现");
@@ -69,7 +57,6 @@ class CreatorBuilderBase {
     /** 
      * 构建
      * 需要子类实现
-     * @returns {Promise<Result>}
      */
     async onBuild() {
         throw new Error("onBuild 方法未实现");
@@ -78,7 +65,6 @@ class CreatorBuilderBase {
     /** 
      * 构建后
      * 需要子类实现
-     * @returns {Promise<Result>}
      */
     async onBuildAfter() {
         throw new Error("onBuildAfter 方法未实现");

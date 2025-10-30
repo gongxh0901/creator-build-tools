@@ -33,34 +33,25 @@ class ManifestGenerator {
         };
     }
 
+    /**
+     * 开始生成manifest文件
+     */
     async start() {
-        // 设置基础信息
-        this.onBaseInfo();
-
-        // 生成资产md5
-        const result = await this.generateAssetMD5();
-        if (result.code != 0) {
-            Logger.error(result.message);
-            return result;
+        try {
+            // 设置基础信息
+            this.onBaseInfo();
+            // 生成资产md5  
+            await this.generateAssetMD5();
+            // 写入manifest文件到项目中
+            await this.onWriteManifestToProject();
+            // 向构建后的资源中的manifest文件中写入内容
+            await this.onWriteManifestToBuildSrc();
+            // 写入version.manifest
+            await this.onWriteVersionManifest();
+        } catch (error) {
+            Logger.error(`生成热更新manifest文件失败: ${error.message}`);
+            throw new Result(-1, `生成热更新manifest文件失败: ${error.message}`);
         }
-
-        // 写入manifest文件到项目中
-        const result2 = await this.onWriteManifestToProject();
-        if (result2.code != 0) {
-            return result2;
-        }
-
-        // 向构建后的资源中的manifest文件中写入内容
-        const result3 = await this.onWriteManifestToBuildSrc();
-        if (result3.code != 0) {
-            return result3;
-        }
-
-        const result4 = await this.onWriteVersionManifest();
-        if (result4.code != 0) {
-            return result4;
-        }
-        return new Result(0, '生成热更新manifest文件成功');
     }
 
 
@@ -107,11 +98,9 @@ class ManifestGenerator {
                 if (compressed) {
                     this._manifest.assets[file].compressed = true;
                 }
-            } 
-            return new Result(0, '生成资产md5成功');
+            }
         } catch (error) {
-            Logger.error('生成资产md5失败');
-            return new Result(-1, '生成资产md5失败', error);
+            throw new Result(-1, `生成资产md5失败: ${error.message}`);
         }
     }
 
@@ -121,12 +110,7 @@ class ManifestGenerator {
     async onWriteManifestToProject() {
         let dest = DataHelper.hotupdate.getDest(this._platform);
         let filepath = path.join(dest, 'project.manifest');
-        let result = await this._writeFile(filepath, JSON.stringify(this._manifest));
-        if (result.code != 0) {
-            Logger.error(`向【${filepath}】中写入内容失败`);
-            return new Result(-1, `向【${filepath}】中写入内容失败`, result.signal);
-        }
-        return new Result(0, `向【${filepath}】中写入内容成功`);
+        await FileUtils.writeFile(filepath, JSON.stringify(this._manifest));
     }
 
     /**
@@ -136,17 +120,13 @@ class ManifestGenerator {
         let dir = DataHelper.hotupdate.getManifest(this._platform);
         let manifestFiles = this._findManifestFiles(dir);
         if (manifestFiles.length === 0) {
-            return new Result(-1, `【hotupdate.json】文件中配置的【manifest】路径下不存在 manifest文件`);
+            throw new Result(-1, `【hotupdate.json】文件中配置的【manifest】路径下不存在 manifest文件`);
         }
         if (manifestFiles.length >= 1) {
-            return new Result(-1, `【hotupdate.json】文件中配置的【manifest】路径下存在多个manifest文件`);
+            throw new Result(-1, `【hotupdate.json】文件中配置的【manifest】路径下存在多个manifest文件`);
         }
         let manifestFile = manifestFiles[0];
-        let result = await this._writeFile(manifestFile, JSON.stringify(this._manifest));
-        if (result.code != 0) {
-            return new Result(-1, `向【${manifestFile}】中写入内容失败`, result.signal);
-        }
-        return result;
+        await FileUtils.writeFile(manifestFile, JSON.stringify(this._manifest));
     }
 
     /**
@@ -157,17 +137,13 @@ class ManifestGenerator {
         delete this._manifest.assets;
         delete this._manifest.searchPaths;
         let filepath = path.join(DataHelper.hotupdate.getDest(this._platform), 'version.manifest');
-        let result = await this._writeFile(filepath, JSON.stringify(this._manifest));
-        if (result.code != 0) {
-            Logger.error(`向【${filepath}】中写入内容失败`);
-            return new Result(-1, `向【${filepath}】中写入内容失败`, result.signal);
-        }
-        return result;
+        await FileUtils.writeFile(filepath, JSON.stringify(this._manifest));
     }
 
 
     /**
      * 在配置的文件夹中递归查找 .manifest 后缀的文件
+     * @private
      * @param {string} dir 源文件夹路径
      * @returns {string[]} 返回所有找到的.manifest文件的绝对路径数组
      */
@@ -189,23 +165,6 @@ class ManifestGenerator {
             }
         });
         return results;
-    }
-
-    /**
-     * 写入文件
-     * @param {*} dest 文件路径
-     * @param {*} content 内容字符串
-     */
-    async _writeFile(dest, content) {
-        return new Promise((resolve, reject) => {
-            fs.writeFile(dest, content, (err) => {
-                if (err) {
-                    reject(new Result(-1, '写入文件失败', err));
-                } else {
-                    resolve(new Result(0, '写入文件成功'));
-                }
-            });
-        });
     }
 }
 

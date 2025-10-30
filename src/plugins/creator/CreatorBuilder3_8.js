@@ -13,29 +13,24 @@ const { ModeType } = require('../../header/Header');
 const { RunCommand } = require('../../utils/Command');
 const Logger = require('../../utils/Logger');
 const ManifestGenerator = require('../hotupdate/ManifestGenerator');
+const FileUtils = require('src/utils/FileUtils');
 class CreatorBuilder3_8 extends CreatorBuilderBase {
 
     async onBuildBefore() {
-        // 修改游戏内配置文件的版本号
-        return new Promise((resolve, reject) => {
-            let versionJson = path.join(this._project, 'assets', 'version.json');
-            if (fs.existsSync(versionJson)) {
-                let data = {
-                    "version": this._version
-                }
-                fs.writeFile(versionJson, JSON.stringify(data), (err) => {
-                    if (err) {
-                        reject(new Result(-1, "修改【assets/version.json】文件失败", err));
-                    } else {
-                        resolve(new Result(0, "修改【assets/version.json】文件成功"));
-                    }
-                });
-            } else {
-                resolve(new Result(0, "项目assets/version.json文件不存在 跳过修改游戏内版本配置"));
-            }
-        });
+        let versionJson = path.join(this._project, 'assets', 'version.json');
+        if (!fs.existsSync(versionJson)) {
+            Logger.log(`项目assets/version.json文件不存在 跳过修改游戏内版本配置`);
+            return;
+        }
+        let data = {
+            "version": this._version
+        }
+        await FileUtils.writeFile(versionJson, JSON.stringify(data));
     }
 
+    /** 
+     * 构建
+     */
     async onBuild() {
         // 构建打包参数
         let buildParam = `stage=build;platform=${this._platform}`;
@@ -68,48 +63,42 @@ class CreatorBuilder3_8 extends CreatorBuilderBase {
         // 执行构建命令
         let result = await RunCommand(this._creator, options);
         if (result.code !== 36) {
-            return result;
+            throw result;
         }
-        return new Result(0, `构建完成`);
     }
 
+    /** 
+     * 构建后
+     * 需要子类实现
+     */
     async onBuildAfter() {
         // 处理热更新的manifest文件
         // 构建成功后 如果需要 执行热更新manifest文件生成
         let needHotUpdate = DataHelper.hotupdate.isNeed(this._platform);
         if (needHotUpdate) {
             // 修改main.js文件 插入热更新代码
-            let modifyMainJsResult = await this.modifyMainJs();
-            if (modifyMainJsResult.code !== 0) {
-                return modifyMainJsResult;
-            }
-
+            await this.modifyMainJs();
             // 生成manifest文件
-            const result = await new ManifestGenerator(this._version, this._resVersion, this._platform, this._modeType).start();
-            if (result.code !== 0) {
-                return result;
-            }
+            await new ManifestGenerator(this._version, this._resVersion, this._platform, this._modeType).start();
         } else {
             Logger.log(`平台【${this._platform}】不需要热更新 跳过修改main.js文件和生成manifest文件`);
         }
-        return new Result(0, "构建后处理完成");
     }
 
     /** 修改main.js文件 插入热更新代码 */
     async modifyMainJs() {
         let mainJsPath = DataHelper.hotupdate.getMainJs(this._platform);
         if (!fs.existsSync(mainJsPath)) {
-            return new Result(-1, "main.js文件不存在:" + mainJsPath);
+            throw new Result(-1, `${mainJsPath}下不存在main.js文件`);
         }
         let data = fs.readFileSync(mainJsPath, 'utf-8');
         if (data.startsWith("// 插入热更新代码到")) {
             Logger.log(`main.js文件已包含热更新代码 跳过修改`);
-            return new Result(0, "main.js文件已包含热更新代码 跳过修改");
+            return;
         }
-
         let contentPath = path.join(__dirname, '..', '..', '..', 'config', 'hot-mainjs.txt');
         if (!fs.existsSync(contentPath)) {
-            return new Result(-1, "hot-mainjs.txt文件不存在 请检查config目录下是否存在该文件");
+            throw new Result(-1, "hot-mainjs.txt文件不存在 请检查config目录下是否存在该文件");
         }
         let content = fs.readFileSync(contentPath, 'utf-8');
 
@@ -119,7 +108,6 @@ class CreatorBuilder3_8 extends CreatorBuilderBase {
         var newStr = content + '\n' + data;
         fs.writeFileSync(mainJsPath, newStr);
         Logger.log(`修改main.js文件成功:${mainJsPath}`);
-        return new Result(0, "修改main.js文件成功");
     }
 }
 

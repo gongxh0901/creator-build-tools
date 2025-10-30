@@ -16,7 +16,6 @@ const OSS = require('ali-oss');
 class OssUpload extends UploadBase {
     /**
      * 初始化oss客户端
-     * @returns {Promise<Result>}
      */
     async onInitClient() {
         const ossInfo = DataHelper.oss.getCDNInfo();
@@ -27,16 +26,16 @@ class OssUpload extends UploadBase {
         let bucket = ossInfo.BUCKET;
 
         if (!keyid) {
-            return new Result(-1, "oss.json中的【ACCESS_KEY_ID】字段不能为空");
+            throw new Result(-1, "oss.json中的【ACCESS_KEY_ID】字段不能为空");
         }
         if (!secret) {
-            return new Result(-1, "oss.json中的【ACCESS_KEY_SECRET】字段不能为空");
+            throw new Result(-1, "oss.json中的【ACCESS_KEY_SECRET】字段不能为空");
         }
         if (!region) {
-            return new Result(-1, "oss.json中的【REGION】字段不能为空");
+            throw new Result(-1, "oss.json中的【REGION】字段不能为空");
         }
         if (!bucket) {
-            return new Result(-1, "oss.json中的【BUCKET】字段不能为空");
+            throw new Result(-1, "oss.json中的【BUCKET】字段不能为空");
         }
 
         this._client = new OSS({
@@ -49,7 +48,6 @@ class OssUpload extends UploadBase {
             // Bucket名称。
             bucket: bucket,
         });
-        return new Result(0, "初始化oss成功");
     }
 
     /**

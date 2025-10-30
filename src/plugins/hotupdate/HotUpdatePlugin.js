@@ -6,11 +6,11 @@
 
 const path = require('path');
 const fs = require('fs');
-const ManifestGenerator = require('./ManifestGenerator');
 const Logger = require('../../utils/Logger');
 const Result = require('../../utils/Result');
 const DataHelper = require('../../utils/DataHelper');
 const CreatorBuilder3_8 = require('../creator/CreatorBuilder3_8');
+const OssUpload = require('../upload/OssUpload');
 
 class HotUpdatePlugin {
     /**
@@ -36,87 +36,67 @@ class HotUpdatePlugin {
     }
 
     async start() {
-        const result1 = await this.onBefore();
-        if (result1.code !== 0) {
-            return result1;
+        try {
+            await this.onBefore();
+            await this.onStart();
+            // await this.onAfter();
+        } catch (error) {
+            Logger.error(`热更新失败 message:${error.message}`);
         }
-        const result2 = await this.onStart();
-        if (result2.code !== 0) {
-            return result2;
-        }
-        await this.onAfter();
     }
 
     /**
      * 热更新前处理
-     * 1. 检查参数合法性
-     * @returns {Promise<Result>}
+     * 检查参数合法性
      */
     async onBefore() {
         if (!DataHelper.hotupdate.isNeed(this._platform)) {
-            let msg = `【hotupdate.json】中没有平台【${this._platform}】的热更新配置`
-            Logger.error(msg);
-            return new Result(-1, msg);
+            throw new Result(-1, `【hotupdate.json】中没有平台【${this._platform}】的热更新配置`);
         }
         if (!/^\d+\.\d+\.\d+$/.test(this._version)) {
-            let msg = `传入的游戏版本号[${this._version}]不合法， 请检查参数`
-            Logger.error(msg);
-            return new Result(-1, msg);
+            throw new Result(-1, `传入的游戏版本号[${this._version}]不合法， 请检查参数`);
         }
         if (!/^\d+$/.test(this._resVersion)) {
-            let msg = `资源版本号[${this._resVersion}]不合法， 请检查参数`
-            Logger.error(msg);
-            return new Result(-1, msg);
+            throw new Result(-1, `资源版本号[${this._resVersion}]不合法， 请检查参数`);
         }
-        return new Result(0, "热更新前处理完成");
     }
 
     /**
      * 热更新开始
-     * @returns {Promise<Result>}
      */
     async onStart() {
         // 1. 先构建项目
-        const result1 = await new CreatorBuilder3_8(this._platform, this._version, this._modeType, this._resVersion).start();
-        if (result1.code !== 0) {
-            return result1;
-        }
-
+        await new CreatorBuilder3_8(this._platform, this._version, this._modeType, this._resVersion).start();
         // 2. 上传资源
-        const result2 = await this.onUploadResources();
-        if (result2.code !== 0) {
-            return result2;
-        }
+        await this.onUploadResources();
+        
         // // 发送飞书通知
         // if (this._notification) {
         //     await new NotificationFeishu().hotupdateSend(this._platform, this._gameVersion, this._hotVersion, this._isDebug);
         // }
     }
 
-
     /**
      * 上传资源
      */
     async onUploadResources() {
         // version.manifest 放置路径
-        let hotResUrl = DataHelper.oss.getHotupdateUploadUrl(this._modeType, this._platform, this._version);
-        
-        let serverPath = `${hotResUrl}/${this._resVersion}`;
-        
+        let remotePath = DataHelper.oss.getRemotePathHotupdate(this._modeType, this._platform, this._version);
+        // 远程资源放置的路径
+        let remoteResPath = `${remotePath}/${this._resVersion}`;
 
         let srcPath = DataHelper.hotupdate.getSrc(this._platform);
         let destPath = DataHelper.hotupdate.getDest(this._platform);
-
         // 上传assets文件夹
-        await new OssUpload(path.join(srcPath, "assets"), serverPath).upload();
+        await new OssUpload(path.join(srcPath, "assets"), remoteResPath).start();        
         // 上传src文件夹
-        await new OssUpload(path.join(srcPath, "src"), serverPath).upload();
+        await new OssUpload(path.join(srcPath, "src"), remoteResPath).start();
         // 上传project.manifest文件
-        await new OssUpload(path.join(destPath, "project.manifest"), serverPath).upload();
+        await new OssUpload(path.join(destPath, "project.manifest"), remoteResPath).start();
 
         if (this._immediately) {
             // 上传version.manifest文件
-            await new OssUpload(path.join(destPath, "version.manifest"), versionPath).upload();
+            await new OssUpload(path.join(destPath, "version.manifest"), remotePath).start();
         } else {
             // 改名version.manifest 成文件 version.manifest.temp 后上传到cdn
             let tempPath = path.join(destPath, "version.manifest.temp");
@@ -126,7 +106,7 @@ class HotUpdatePlugin {
             }
             // 重命名
             fs.renameSync(path.join(destPath, "version.manifest"), tempPath);
-            await new OssUpload(tempPath, versionPath).upload();
+            await new OssUpload(tempPath, remotePath).start();
             // 上传完成后删除
             fs.unlinkSync(tempPath);
         }
@@ -167,97 +147,97 @@ class HotUpdatePlugin {
     //     await this.buildFlow();
     // }
 
-    /**
-     * 输入平台
-     */
-    async inputPlatform() {
-        console.log("支持的平台类型:");
-        let allPlatforms = ["ios", "android", "harmonyos-next"];
-        for (let platform of allPlatforms) {
-            console.log(colors("green", platform));
-        }
+    // /**
+    //  * 输入平台
+    //  */
+    // async inputPlatform() {
+    //     console.log("支持的平台类型:");
+    //     let allPlatforms = ["ios", "android", "harmonyos-next"];
+    //     for (let platform of allPlatforms) {
+    //         console.log(colors("green", platform));
+    //     }
 
-        let input = await WaitInput("请输入平台类型:");
-        if (allPlatforms.includes(input)) {
-            this._platform = input;
-        } else {
-            console.log(colors("red", "输入的平台类型不合法，请重新输入"));
-            await this.inputPlatform();
-        }
-    }
+    //     let input = await WaitInput("请输入平台类型:");
+    //     if (allPlatforms.includes(input)) {
+    //         this._platform = input;
+    //     } else {
+    //         console.log(colors("red", "输入的平台类型不合法，请重新输入"));
+    //         await this.inputPlatform();
+    //     }
+    // }
 
-    /**
-     * 输入游戏版本号 eg: 1.0.0
-     */
-    async inputGameVersion() {
-        let input = await WaitInput("请输入游戏版本号:");
-        if (/^\d+\.\d+\.\d+$/.test(input)) {
-            this._gameVersion = input;
-        } else {
-            console.log(colors("red", "输入的游戏版本号不合法，请重新输入"));
-            await this.inputGameVersion();
-        }
-    }
+    // /**
+    //  * 输入游戏版本号 eg: 1.0.0
+    //  */
+    // async inputGameVersion() {
+    //     let input = await WaitInput("请输入游戏版本号:");
+    //     if (/^\d+\.\d+\.\d+$/.test(input)) {
+    //         this._gameVersion = input;
+    //     } else {
+    //         console.log(colors("red", "输入的游戏版本号不合法，请重新输入"));
+    //         await this.inputGameVersion();
+    //     }
+    // }
 
-    /**
-     * 输入热更新版本号 一个数字
-     */
-    async inputHotVersion() {
-        let input = await WaitInput("请输入热更新版本号:");
-        if (/^\d+$/.test(input)) {
-            this._hotVersion = input;
-        } else {
-            console.log(colors("red", "输入的热更新版本号不合法，请重新输入"));
-            await this.inputHotVersion();
-        }
-    }
+    // /**
+    //  * 输入热更新版本号 一个数字
+    //  */
+    // async inputHotVersion() {
+    //     let input = await WaitInput("请输入热更新版本号:");
+    //     if (/^\d+$/.test(input)) {
+    //         this._hotVersion = input;
+    //     } else {
+    //         console.log(colors("red", "输入的热更新版本号不合法，请重新输入"));
+    //         await this.inputHotVersion();
+    //     }
+    // }
 
-    /**
-     * 输入是否是debug
-     */
-    async inputDebug() {
-        let input = await WaitInput("请输入是否debug(y/n) 默认是非debug:");
-        if (input.toLowerCase() === "y") {
-            this._isDebug = true;
-        } else {
-            this._isDebug = false;
-        }
-    }
+    // /**
+    //  * 输入是否是debug
+    //  */
+    // async inputDebug() {
+    //     let input = await WaitInput("请输入是否debug(y/n) 默认是非debug:");
+    //     if (input.toLowerCase() === "y") {
+    //         this._isDebug = true;
+    //     } else {
+    //         this._isDebug = false;
+    //     }
+    // }
 
-    /**
-     * 输入是否立即生效
-     */
-    async inputImmediately() {
-        let input = await WaitInput("请输入是否立即生效(y/n) 默认是立即生效:");
-        if (input.toLowerCase() === "n") {
-            this._immediately = false;
-        } else {
-            this._immediately = true;
-        }
-    }
+    // /**
+    //  * 输入是否立即生效
+    //  */
+    // async inputImmediately() {
+    //     let input = await WaitInput("请输入是否立即生效(y/n) 默认是立即生效:");
+    //     if (input.toLowerCase() === "n") {
+    //         this._immediately = false;
+    //     } else {
+    //         this._immediately = true;
+    //     }
+    // }
 
-    /**
-     * 输入是否通知飞书
-     */
-    async inputNotificationFeishu() {
-        let input = await WaitInput("请输入是否通知飞书(y/n) 默认通知:");
-        if (input.toLowerCase() === "n") {
-            this._notification = false;
-        } else {
-            this._notification = true;
-        }
-    }
+    // /**
+    //  * 输入是否通知飞书
+    //  */
+    // async inputNotificationFeishu() {
+    //     let input = await WaitInput("请输入是否通知飞书(y/n) 默认通知:");
+    //     if (input.toLowerCase() === "n") {
+    //         this._notification = false;
+    //     } else {
+    //         this._notification = true;
+    //     }
+    // }
 
-    getChannelByPlatform() {
-        // 找到platform和this._platform相同的 第一项
-        let channels = DataHelper.instance.allChannels();
-        for (let channel of channels) {
-            if (DataHelper.instance.getChannelPlatform(channel) === this._platform) {
-                return channel;
-            }
-        }
-        return null;
-    }
+    // getChannelByPlatform() {
+    //     // 找到platform和this._platform相同的 第一项
+    //     let channels = DataHelper.instance.allChannels();
+    //     for (let channel of channels) {
+    //         if (DataHelper.instance.getChannelPlatform(channel) === this._platform) {
+    //             return channel;
+    //         }
+    //     }
+    //     return null;
+    // }
 }
 
 module.exports = HotUpdatePlugin;
