@@ -4,16 +4,14 @@
     "version": "1.0.0",
     "scripts": {
         "dev": "node src/plugins/creator/CreatorBuilder3_8.js",
-        "dev:oss": "node src/plugins/base/OssUpload.js",
-
+        "dev:oss": "node src/plugins/upload/OssUpload.js",
         "build": "node AutoBuild.js",
         "build:jenkins": "node src/bin/build-jenkins.js",
-
         "hotupdate": "node AutoHotUpdate.js",
         "hotupdate:jenkins": "node src/bin/hotupdate-jenkins.js"
     },
     "dependencies": {
-        "ali-oss": "^6.22.0",
+        "ali-oss": "^6.23.0",
         "minidev": "^2.2.5",
         "miniprogram-ci": "1.9.17",
         "progress": "^2.0.3",

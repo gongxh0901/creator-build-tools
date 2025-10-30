@@ -14,7 +14,7 @@ const FileUtils = require('../../utils/FileUtils');
 
 class UploadBase {
     /** 并行上传数量 */
-    _parallelMax = 2;
+    _parallelMax = 10;
 
     /** 当前并行数量 */
     _parallel = 0;
@@ -106,9 +106,8 @@ class UploadBase {
      * @param {string} filepath 本地文件的绝对路径
      * @param {string} remote 远程路径 (不包含域名的路径)
      * @param {{success: () => void, fail: (code: number, message: string) => void}} callback 回调
-     * @returns {Promise<Result>}
      */
-    async onUploadFile(filepath, remote, callback) {
+    onUploadFile(filepath, remote, callback) {
         throw new Error("OssUpload onUploadFile 方法未实现");
     }
 
@@ -131,7 +130,6 @@ class UploadBase {
                 try {
                     this._uploadNext();
                 } catch (error) {
-                    Logger.error(`>>>>>>>>`);
                     reject(error);
                 }
             } 
@@ -241,6 +239,4 @@ class UploadBase {
 }
 
 module.exports = UploadBase;
-
-// new UploadBase("/Users/gongxh/work/kunpo-lib/bit-cc-builder/src/plugins", "test/config").start();
 
