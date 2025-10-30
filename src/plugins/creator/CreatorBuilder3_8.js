@@ -51,7 +51,7 @@ class CreatorBuilder3_8 extends CreatorBuilderBase {
             buildParam += `;server=${DataHelper.oss.getRemoveUrl(this._modeType, this._platform, this._version)}`;
         }
 
-        let buildConfigPath = DataHelper.channels.getBuilderConfig(this._channel);
+        let buildConfigPath = DataHelper.platforms.getBuilderConfig(this._platform);
         if (buildConfigPath && fs.existsSync(path.join(process.cwd(), buildConfigPath))) {
             buildParam += `;configPath=${buildConfigPath}`;
         }
@@ -124,5 +124,3 @@ class CreatorBuilder3_8 extends CreatorBuilderBase {
 }
 
 module.exports = CreatorBuilder3_8;
-
-new CreatorBuilder3_8("taptap", "1.0.0", "debug", "0").start();

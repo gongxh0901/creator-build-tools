@@ -4,6 +4,7 @@
     "version": "1.0.0",
     "scripts": {
         "dev": "node src/plugins/creator/CreatorBuilder3_8.js",
+        "dev:oss": "node src/plugins/base/OssUpload.js",
 
         "build": "node AutoBuild.js",
         "build:jenkins": "node src/bin/build-jenkins.js",
