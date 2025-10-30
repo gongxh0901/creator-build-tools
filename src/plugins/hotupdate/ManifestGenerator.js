@@ -57,6 +57,7 @@ class ManifestGenerator {
 
     /**
      * 设置基础信息
+     * @private
      */
     onBaseInfo() {
         let url = DataHelper.oss.getRemoveUrl(this._modeType, this._platform, this._version);
@@ -74,6 +75,7 @@ class ManifestGenerator {
     /**
      * 获取creator编译后产出的文件, 生成文件的md5比对码,
      * 之后写入到 this._manifest 中的 assets中
+     * @private
      */
     async generateAssetMD5() {
         try {
@@ -106,6 +108,7 @@ class ManifestGenerator {
 
     /**
      * 写入manifest文件到项目中
+     * @private
      */
     async onWriteManifestToProject() {
         let dest = DataHelper.hotupdate.getDest(this._platform);
@@ -115,6 +118,7 @@ class ManifestGenerator {
 
     /**
      * 向构建后的资源中的manifest文件中写入内容
+     * @private
      */
     async onWriteManifestToBuildSrc() {
         let dir = DataHelper.hotupdate.getManifest(this._platform);
@@ -131,6 +135,7 @@ class ManifestGenerator {
 
     /**
      * 最后删除assets和搜索路径 写入version.manifest
+     * @private
      */
     async onWriteVersionManifest() {
         // 最后删除assets和搜索路径 写入version.manifest
@@ -146,6 +151,7 @@ class ManifestGenerator {
      * @private
      * @param {string} dir 源文件夹路径
      * @returns {string[]} 返回所有找到的.manifest文件的绝对路径数组
+     * @private
      */
     _findManifestFiles(dir) {
         let results = [];
@@ -169,6 +175,3 @@ class ManifestGenerator {
 }
 
 module.exports = ManifestGenerator;
-
-//TODO:: ManifestGenerator
-// new ManifestGenerator().start("0.5.3", 1, "android", true);

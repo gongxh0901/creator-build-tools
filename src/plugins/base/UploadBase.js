@@ -13,16 +13,28 @@ const Logger = require('../../utils/Logger');
 const FileUtils = require('../../utils/FileUtils');
 
 class UploadBase {
-    /** 并行上传数量 */
+    /** 
+     * 并行上传数量
+     * @private
+     */
     _parallelMax = 10;
 
-    /** 当前并行数量 */
+    /** 
+     * 当前并行数量
+     * @private
+     */
     _parallel = 0;
     
-    /** 上传超时时间 单位: 秒 */
+    /** 
+     * 上传超时时间 单位: 秒
+     * @protected
+     */
     _timeout = 10;
 
-    /** 最大重试次数 */
+    /** 
+     * 最大重试次数
+     * @private
+     */
     _retryMax = 3;
 
     /** 
@@ -33,11 +45,13 @@ class UploadBase {
      * 
      * times: 重试次数
      * @type {{filepath: string, status: "waiting" | "running" | "success", times: number}[]}
+     * @private
      */
     _resources = [];
 
     /** 
      * @param {Result} result 结果
+     * @private
      */
     _resultCallback = (result) => {
 
@@ -48,6 +62,7 @@ class UploadBase {
      * @param {string} local 本地文件绝对路径 文件 or 目录
      * @param {string} remote 远程目录 (不包含域名的路径)
      * @param {number} timeout 上传超时时间 单位: 秒
+     * @public
      */
     constructor(local, remote, timeout = 10) {
         Logger.log(`==================== 上传文件到cdn ====================`);
@@ -77,7 +92,7 @@ class UploadBase {
 
     /**
      * 开始上传
-     * @returns {Promise<void>}
+     * @public
      */
     async start() {
         try {
@@ -92,24 +107,28 @@ class UploadBase {
 
     /**
      * 初始化oss客户端
+     * 需要子类实现
+     * @protected
      */
     async onInitClient() {
         throw new Error("OssUpload onInitClient 方法未实现");
     }
 
     /**
-     * 上传单个文件
+     * 上传单个文件 
+     * 需要子类实现
      * @param {string} filepath 本地文件的绝对路径
      * @param {string} remote 远程路径 (不包含域名的路径)
      * @param {{success: () => void, fail: (code: number, message: string) => void}} callback 回调
+     * @protected
      */
     async onUploadFile(filepath, remote, callback) {
         throw new Error("OssUpload onUploadFile 方法未实现");
     }
 
     /**
-     * 开始上传
-     * @returns {Promise<Result>}
+     * 开始上传 
+     * @private
      */
     async _startUpload() {
         return new Promise((resolve, reject) => {
@@ -134,6 +153,7 @@ class UploadBase {
 
     /**
      * 上传下一个资源
+     * @private
      */
     _uploadNext() {
         // 找到第一个等待中的资源
@@ -191,6 +211,7 @@ class UploadBase {
      * 解析本地路径
      * @param {string} local 本地文件绝对路径 文件 or 文件夹
      * @returns {string} 文件的绝对目录
+     * @private
      */
     _parseLocalPath(local) {
         return fs.statSync(local).isFile() ? path.dirname(local) : local;
@@ -201,6 +222,7 @@ class UploadBase {
      * @param {string} remote 远程目录 (不包含域名的路径)
      * @param {string} local 本地文件绝对路径 文件 or 文件夹
      * @returns {string} 远程目录 (不包含域名的路径)
+     * @private
      */
     _parseRemotePath(remote, local) {
         let result = '';

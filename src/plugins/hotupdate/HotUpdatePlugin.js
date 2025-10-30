@@ -19,6 +19,7 @@ class HotUpdatePlugin {
      * @param {string} resVersion 资源版本号
      * @param {string} modeType 构建模式 支持 debug, release
      * @param {boolean} immediately 是否立即生效
+     * @public
      */
     constructor(platform, version, resVersion = "0", modeType = "release", immediately = true) {
         Logger.blue(`====================热更新 ====================`);
@@ -35,6 +36,10 @@ class HotUpdatePlugin {
         Logger.tips(`是否立即生效:${this._immediately ? "是" : "否"}`);
     }
 
+    /**
+     * 开始热更新
+     * @public
+     */
     async start() {
         try {
             await this.onBefore();
@@ -48,6 +53,7 @@ class HotUpdatePlugin {
     /**
      * 热更新前处理
      * 检查参数合法性
+     * @protected
      */
     async onBefore() {
         if (!DataHelper.hotupdate.isNeed(this._platform)) {
@@ -63,6 +69,7 @@ class HotUpdatePlugin {
 
     /**
      * 热更新开始
+     * @protected
      */
     async onStart() {
         // 1. 先构建项目
@@ -78,6 +85,7 @@ class HotUpdatePlugin {
 
     /**
      * 上传资源
+     * @protected
      */
     async onUploadResources() {
         // version.manifest 放置路径

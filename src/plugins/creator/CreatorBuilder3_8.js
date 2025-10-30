@@ -15,7 +15,10 @@ const Logger = require('../../utils/Logger');
 const ManifestGenerator = require('../hotupdate/ManifestGenerator');
 const FileUtils = require('src/utils/FileUtils');
 class CreatorBuilder3_8 extends CreatorBuilderBase {
-
+    /** 
+     * 构建前
+     * @protected
+     */
     async onBuildBefore() {
         let versionJson = path.join(this._project, 'assets', 'version.json');
         if (!fs.existsSync(versionJson)) {
@@ -29,7 +32,8 @@ class CreatorBuilder3_8 extends CreatorBuilderBase {
     }
 
     /** 
-     * 构建
+     * 构建中
+     * @protected
      */
     async onBuild() {
         // 构建打包参数
@@ -69,7 +73,7 @@ class CreatorBuilder3_8 extends CreatorBuilderBase {
 
     /** 
      * 构建后
-     * 需要子类实现
+     * @protected
      */
     async onBuildAfter() {
         // 处理热更新的manifest文件
@@ -87,16 +91,16 @@ class CreatorBuilder3_8 extends CreatorBuilderBase {
 
     /** 修改main.js文件 插入热更新代码 */
     async modifyMainJs() {
-        let mainJsPath = DataHelper.hotupdate.getMainJs(this._platform);
+        const mainJsPath = DataHelper.hotupdate.getMainJs(this._platform);
         if (!fs.existsSync(mainJsPath)) {
             throw new Result(-1, `${mainJsPath}下不存在main.js文件`);
         }
-        let data = fs.readFileSync(mainJsPath, 'utf-8');
+        const data = fs.readFileSync(mainJsPath, 'utf-8');
         if (data.startsWith("// 插入热更新代码到")) {
             Logger.log(`main.js文件已包含热更新代码 跳过修改`);
             return;
         }
-        let contentPath = path.join(__dirname, '..', '..', '..', 'config', 'hot-mainjs.txt');
+        const contentPath = path.join(__dirname, '..', '..', '..', 'config', 'hot-mainjs.txt');
         if (!fs.existsSync(contentPath)) {
             throw new Result(-1, "hot-mainjs.txt文件不存在 请检查config目录下是否存在该文件");
         }
@@ -105,7 +109,7 @@ class CreatorBuilder3_8 extends CreatorBuilderBase {
         // 替换游戏版本号
         content = content.replace('let version = "0.0.1"', `let version = "${this._version}"`);
 
-        var newStr = content + '\n' + data;
+        const newStr = content + '\n' + data;
         fs.writeFileSync(mainJsPath, newStr);
         Logger.log(`修改main.js文件成功:${mainJsPath}`);
     }

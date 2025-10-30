@@ -14,6 +14,7 @@ class CreatorBuilderBase {
      * @param {string} version 版本号
      * @param {string} modeType 构建模式 支持 debug, release
      * @param {string} resVersion 资源版本号 默认值: "0"
+     * @public
      */
     constructor(platform, version, modeType, resVersion = "0") {
         Logger.blue(`====================构建Creator项目 ====================`);
@@ -34,6 +35,7 @@ class CreatorBuilderBase {
 
     /**
      * 开始
+     * @public
      */
     async start() {
         try {
@@ -49,14 +51,16 @@ class CreatorBuilderBase {
     /** 
      * 构建前
      * 需要子类实现
+     * @protected
      */
     async onBuildBefore() {
         throw new Error("onBuildBefore 方法未实现");
     }
 
     /** 
-     * 构建
+     * 构建 
      * 需要子类实现
+     * @protected
      */
     async onBuild() {
         throw new Error("onBuild 方法未实现");
@@ -65,6 +69,7 @@ class CreatorBuilderBase {
     /** 
      * 构建后
      * 需要子类实现
+     * @protected
      */
     async onBuildAfter() {
         throw new Error("onBuildAfter 方法未实现");

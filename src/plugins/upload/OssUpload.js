@@ -16,6 +16,7 @@ const OSS = require('ali-oss');
 class OssUpload extends UploadBase {
     /**
      * 初始化oss客户端
+     * @protected
      */
     async onInitClient() {
         const ossInfo = DataHelper.oss.getCDNInfo();
@@ -55,6 +56,7 @@ class OssUpload extends UploadBase {
      * @param {string} filepath 本地文件的绝对路径
      * @param {string} remote 远程路径 (不包含域名的路径)
      * @param {{success: () => void, fail: (code: number, message: string) => void}} callback 回调
+     * @protected
      */
     async onUploadFile(filepath, remote, callback) {
         const options = {
