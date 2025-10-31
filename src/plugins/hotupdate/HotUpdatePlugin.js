@@ -18,7 +18,7 @@ class HotUpdatePlugin {
      * @param {string} platform 平台 支持类型 ios, android, harmonyos-next
      * @param {string} version 游戏版本号
      * @param {string} resVersion 资源版本号
-     * @param {string} modeType 构建模式 支持 debug, release
+     * @param {"debug" | "release"} modeType 构建模式 支持 debug, release
      * @param {boolean} immediately 是否立即生效
      * @public
      */
@@ -42,15 +42,21 @@ class HotUpdatePlugin {
      * @public
      */
     async start() {
+        let message = new Message(MessageType.HOTUPDATE, this._version, this._modeType);
+        message.resVersion = this._resVersion;
+        message.platform = this._platform;
         try {
             await this.onBefore();
             await this.onStart();
             // await this.onAfter();
+            message.succeed = true;
+            message.message = "热更新完成";
         } catch (error) {
             Logger.error(`热更新失败 message:${error.message}`);
-
-            new Message(MessageType.HOTUPDATE, this._version, this._modeType, false)
+            message.succeed = false;
+            message.message = error.message;
         }
+        MessageHelper.addMessage(message);
     }
 
     /**
@@ -79,11 +85,6 @@ class HotUpdatePlugin {
         await new CreatorBuilder3_8(this._platform, this._version, this._modeType, this._resVersion).start();
         // 2. 上传资源
         await this.onUploadResources();
-        
-        // // 发送飞书通知
-        // if (this._notification) {
-        //     await new NotificationFeishu().hotupdateSend(this._platform, this._gameVersion, this._hotVersion, this._isDebug);
-        // }
     }
 
     /**
@@ -253,4 +254,4 @@ class HotUpdatePlugin {
 
 module.exports = HotUpdatePlugin;
 
-new HotUpdatePlugin("android", "1.0.6", "4", "debug", true).start();
+// new HotUpdatePlugin("android", "1.0.6", "4", "debug", true).start();

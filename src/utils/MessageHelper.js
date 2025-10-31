@@ -27,12 +27,6 @@ class Message {
      */
     _type = MessageType.BUILD;
     /**
-     * 是否成功
-     * @type {boolean}
-     * @private
-     */
-    _succeed = true;
-    /**
      * 版本号
      * @type {string}
      * @private
@@ -45,6 +39,13 @@ class Message {
      */
     _mode = ModeType.DEBUG;
     
+    /**
+     * 是否成功
+     * @type {boolean}
+     * @public
+     */
+    succeed = true;
+
     /**
      * BuildCode
      * @type {string}
@@ -99,17 +100,14 @@ class Message {
      * @param {"build" | "hotupdate"} type 信息类型
      * @param {string} version 版本号
      * @param {"debug" | "release"} mode 构建模式
-     * @param {boolean} succeed 是否成功
      */
-    constructor(type, version, mode, succeed = true) {
+    constructor(type, version, mode) {
         this._type = type;
         this._version = version;
         this._mode = mode;
-        this._succeed = succeed;
     }
 
     get type() { return this._type; }
-    get succeed() { return this._succeed; }
     get version() { return this._version; }
     get mode() { return this._mode; }
 }
