@@ -3,13 +3,8 @@
  * @Date: 2025-10-30
  * @Description: 
  */
-const fs = require('fs');
-const path = require('path');
-const ProgressBar = require('progress');
 const Result = require('../../utils/Result');
 const DataHelper = require('../../utils/DataHelper');
-const Logger = require('../../utils/Logger');
-const FileUtils = require('../../utils/FileUtils');
 const UploadBase = require('../base/UploadBase');
 const OSS = require('ali-oss');
 
@@ -80,5 +75,3 @@ class OssUpload extends UploadBase {
 }
 
 module.exports = OssUpload;
-
-new OssUpload("/Users/gongxh/work/kunpo-lib/bit-cc-builder/src/plugins", "test/config").start();

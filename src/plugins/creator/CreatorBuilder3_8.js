@@ -6,14 +6,14 @@
 
 const fs = require('fs');
 const path = require('path');
-const CreatorBuilderBase = require('../base/CreatorBuilder');
+const CreatorBuilderBase = require('../base/CreatorBuilderBase');
 const Result = require('../../utils/Result');
 const DataHelper = require('../../utils/DataHelper');
 const { ModeType } = require('../../header/Header');
 const { RunCommand } = require('../../utils/Command');
 const Logger = require('../../utils/Logger');
 const ManifestGenerator = require('../hotupdate/ManifestGenerator');
-const FileUtils = require('src/utils/FileUtils');
+const FileUtils = require('../../utils/FileUtils');
 class CreatorBuilder3_8 extends CreatorBuilderBase {
     /** 
      * 构建前
@@ -47,7 +47,7 @@ class CreatorBuilder3_8 extends CreatorBuilderBase {
 
         // 如果是小游戏平台 设置server地址
         if (DataHelper.platforms.isRemote(this._platform)) {
-            buildParam += `;server=${DataHelper.oss.getRemoveUrl(this._modeType, this._platform, this._version)}`;
+            buildParam += `;server=${DataHelper.oss.getRemoteUrl(this._modeType, this._platform, this._version)}`;
         }
 
         let buildConfigPath = DataHelper.platforms.getBuilderConfig(this._platform);

@@ -17,7 +17,7 @@ class CreatorBuilderBase {
      * @public
      */
     constructor(platform, version, modeType, resVersion = "0") {
-        Logger.blue(`====================构建Creator项目 ====================`);
+        Logger.blue(`==================== 构建Creator项目 ====================`);
         this._creator = DataHelper.base.creator;
         this._project = DataHelper.base.project;
         this._platform = platform;
@@ -54,7 +54,7 @@ class CreatorBuilderBase {
      * @protected
      */
     async onBuildBefore() {
-        throw new Error("onBuildBefore 方法未实现");
+        throw new Result(-1, "onBuildBefore 方法未实现");
     }
 
     /** 
@@ -63,7 +63,7 @@ class CreatorBuilderBase {
      * @protected
      */
     async onBuild() {
-        throw new Error("onBuild 方法未实现");
+        throw new Result(-1, "onBuild 方法未实现");
     }
 
     /** 
@@ -72,7 +72,7 @@ class CreatorBuilderBase {
      * @protected
      */
     async onBuildAfter() {
-        throw new Error("onBuildAfter 方法未实现");
+        throw new Result(-1, "onBuildAfter 方法未实现");
     }
 }
 

@@ -13,7 +13,7 @@ class Result {
      * 
      * @param {number} code 一般情况下 成功是0
      * @param {string} message 描述文本
-     * @param {Error} signal 错误信息
+     * @param {any} signal 错误信息
      */
     constructor(code, message, signal = null) {
         this._code = code;

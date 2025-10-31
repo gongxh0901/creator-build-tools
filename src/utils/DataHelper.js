@@ -23,12 +23,17 @@ class DataHelper {
      * @returns {DataHelper}
      */
     __init() {
-        this.base = new Base('base.json');
-        this.oss = new Oss('oss.json');
-        this.platforms = new Platforms('platforms.json');
-        this.channels = new Channels(this.platforms, 'channels.json');
-        this.certificates = new Certificates('certificates.json');
-        this.hotupdate = new HotUpdate(this.base, 'hotupdate.json');
+        try {
+            this.base = new Base('base.json');
+            this.oss = new Oss('oss.json');
+            this.platforms = new Platforms('platforms.json');
+            this.channels = new Channels(this.platforms, 'channels.json');
+            this.certificates = new Certificates('certificates.json');
+            this.hotupdate = new HotUpdate(this.base, 'hotupdate.json');            
+        } catch (error) {
+            Logger.error(`${error.message}`);
+            throw new Error(`数据初始化失败`);
+        }
         return this;
     }
 }

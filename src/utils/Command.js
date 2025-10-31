@@ -12,12 +12,21 @@ const Logger = require('./Logger');
  * 执行命令
  * @param {string} command 命令
  * @param {string[]} options 命令参数
+ * @param {string} cwd 工作目录
  * @returns {Promise<Result>}
  */
-async function RunCommand(command, options = []) {
+async function RunCommand(command, options = [], cwd = null) {
     return new Promise((resolve, reject) => {
         Logger.cyan(`执行命令:${command} ${options.join(" ")}`);
-        const child = spawn(command, options);
+        if (cwd) {
+            Logger.cyan(`工作目录:${cwd}`);
+        }
+        const spawnOptions = {};
+        if (cwd) {
+            spawnOptions.cwd = cwd;  // 设置工作目录
+        }
+
+        const child = spawn(command, options, spawnOptions);
         
         if (child.stdout) {
             child.stdout.on('data', (data) => {

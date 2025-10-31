@@ -11,7 +11,8 @@ const Result = require('./utils/Result');
 
 class Test {
     constructor() {
-        Logger.blue(`====================测试 ====================`);
+        Logger.blue(`==================== 测试 ====================`);
+        this.test1();
     }
 
     async start() {
@@ -25,9 +26,9 @@ class Test {
 
     async test1() {
         // return new Result(0, "测试1成功");
-        throw new Result(-1, "测试1成功");
+        throw new Error("测试1成功");
     }
 }
 
 
-new Test().start();
+new Test()//.start();

@@ -9,7 +9,7 @@ const crypto = require('crypto');
 const DataHelper = require('../../utils/DataHelper');
 const FileUtils = require('../../utils/FileUtils');
 const Result = require('../../utils/Result');
-const Logger = require('src/utils/Logger');
+const Logger = require('../../utils/Logger');
 
 class ManifestGenerator {
     /**
@@ -41,7 +41,7 @@ class ManifestGenerator {
             // 设置基础信息
             this.onBaseInfo();
             // 生成资产md5  
-            await this.generateAssetMD5();
+            await this.generateMD5();
             // 写入manifest文件到项目中
             await this.onWriteManifestToProject();
             // 向构建后的资源中的manifest文件中写入内容
@@ -60,8 +60,8 @@ class ManifestGenerator {
      * @private
      */
     onBaseInfo() {
-        let url = DataHelper.oss.getRemoveUrl(this._modeType, this._platform, this._version);
-        
+        let url = DataHelper.oss.getHotupdateRemotePath(this._modeType, this._version, this._platform);
+
         // 资源在cdn上的地址 拼接上资源版本号
         this._manifest.packageUrl = `${url}/${this._resVersion}`;
         // project.manifest在cdn上的地址
@@ -70,6 +70,11 @@ class ManifestGenerator {
         this._manifest.remoteVersionUrl = `${url}/version.manifest`;
         // 资源版本号
         this._manifest.version = this._resVersion;
+
+        Logger.log(`packageUrl: ${this._manifest.packageUrl}`);
+        Logger.log(`remoteManifestUrl: ${this._manifest.remoteManifestUrl}`);
+        Logger.log(`remoteVersionUrl: ${this._manifest.remoteVersionUrl}`);
+        Logger.log(`version: ${this._manifest.version}`);
     }
 
     /**
@@ -77,33 +82,57 @@ class ManifestGenerator {
      * 之后写入到 this._manifest 中的 assets中
      * @private
      */
-    async generateAssetMD5() {
+    async generateMD5() {
         try {
             const src = DataHelper.hotupdate.getSrc(this._platform);
+            Logger.log(`编译后的资源路径:${src}`);
+
             const srcFiles = FileUtils.getAllFiles(path.join(src, 'src'));
-            const assetsFiles = FileUtils.getAllFiles(path.join(src, 'assets'));
-            const jsbAdapterFiles = FileUtils.getAllFiles(path.join(src, 'jsb-adapter'));
-            // 所有文件路径相对于src的路径
-            let allFiles = srcFiles.concat(assetsFiles).concat(jsbAdapterFiles);
-    
-            for (let file of allFiles) {
-                const filepath = path.join(src, file);
-                const stat = fs.statSync(filepath);
-                const size = stat['size'];
-                const md5 = crypto.createHash('md5').update(fs.readFileSync(filepath)).digest('hex');
-                let compressed = path.extname(filepath).toLowerCase() === '.zip';
-    
-                this._manifest.assets[file] = {
-                    'size': size,
-                    'md5': md5
-                };
+            for (let file of srcFiles) {
+                let {key, size, md5, compressed} = this.generateAssetMD5(src, path.join('src', file));
+                this._manifest.assets[key] = { 'size': size, 'md5': md5 };
                 if (compressed) {
-                    this._manifest.assets[file].compressed = true;
+                    this._manifest.assets[key].compressed = true;
+                }
+            }
+
+            const assetsFiles = FileUtils.getAllFiles(path.join(src, 'assets'));
+            for (let file of assetsFiles) {
+                let {key, size, md5, compressed} = this.generateAssetMD5(src, path.join('assets', file));
+                this._manifest.assets[key] = { 'size': size, 'md5': md5 };
+                if (compressed) {
+                    this._manifest.assets[key].compressed = true;
+                }
+            }
+
+            const jsbAdapterFiles = FileUtils.getAllFiles(path.join(src, 'jsb-adapter'));
+            for (let file of jsbAdapterFiles) {
+                let {key, size, md5, compressed} = this.generateAssetMD5(src, path.join('jsb-adapter', file));
+                this._manifest.assets[key] = { 'size': size, 'md5': md5 };
+                if (compressed) {
+                    this._manifest.assets[key].compressed = true;
                 }
             }
         } catch (error) {
             throw new Result(-1, `生成资产md5失败: ${error.message}`);
         }
+    }
+
+
+    /**
+     * 生成单个资产的md5
+     * @param {string} src 源文件夹路径
+     * @param {string} filepath 文件路径
+     */
+    generateAssetMD5(src, filepath) {
+        const fullpath = path.join(src, filepath);
+        const stat = fs.statSync(fullpath);
+        const size = stat['size'];
+        const md5 = crypto.createHash('md5').update(fs.readFileSync(fullpath)).digest('hex');
+        let compressed = path.extname(fullpath).toLowerCase() === '.zip';
+        // windows路径转linux路径
+        const key = filepath.replace(/\\/g, '/');
+        return {key, size, md5, compressed};
     }
 
     /**
@@ -126,7 +155,7 @@ class ManifestGenerator {
         if (manifestFiles.length === 0) {
             throw new Result(-1, `【hotupdate.json】文件中配置的【manifest】路径下不存在 manifest文件`);
         }
-        if (manifestFiles.length >= 1) {
+        if (manifestFiles.length > 1) {
             throw new Result(-1, `【hotupdate.json】文件中配置的【manifest】路径下存在多个manifest文件`);
         }
         let manifestFile = manifestFiles[0];

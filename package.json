@@ -4,7 +4,11 @@
     "version": "1.0.0",
     "scripts": {
         "test": "node src/test.js",
-        "dev": "node src/plugins/creator/CreatorBuilder3_8.js",
+        "dev:creator": "node src/plugins/creator/CreatorBuilder3_8.js",
+        "dev:android": "node src/plugins/platforms/AndroidBuilder.js",
+        "dev:manifest": "node src/plugins/hotupdate/ManifestGenerator.js",
+        "dev:hotupdate": "node src/plugins/hotupdate/HotUpdatePlugin.js",
+
         "dev:oss": "node src/plugins/upload/OssUpload.js",
         "build": "node AutoBuild.js",
         "build:jenkins": "node src/bin/build-jenkins.js",

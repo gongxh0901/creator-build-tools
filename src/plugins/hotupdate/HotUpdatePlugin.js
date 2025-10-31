@@ -11,6 +11,7 @@ const Result = require('../../utils/Result');
 const DataHelper = require('../../utils/DataHelper');
 const CreatorBuilder3_8 = require('../creator/CreatorBuilder3_8');
 const OssUpload = require('../upload/OssUpload');
+const { MessageHelper, MessageType, Message } = require('../../utils/MessageHelper');
 
 class HotUpdatePlugin {
     /**
@@ -22,7 +23,7 @@ class HotUpdatePlugin {
      * @public
      */
     constructor(platform, version, resVersion = "0", modeType = "release", immediately = true) {
-        Logger.blue(`====================热更新 ====================`);
+        Logger.blue(`==================== 热更新 ====================`);
         this._platform = platform;
         this._version = version;
         this._resVersion = resVersion;
@@ -47,6 +48,8 @@ class HotUpdatePlugin {
             // await this.onAfter();
         } catch (error) {
             Logger.error(`热更新失败 message:${error.message}`);
+
+            new Message(MessageType.HOTUPDATE, this._version, this._modeType, false)
         }
     }
 
@@ -89,14 +92,14 @@ class HotUpdatePlugin {
      */
     async onUploadResources() {
         // version.manifest 放置路径
-        let remotePath = DataHelper.oss.getRemotePathHotupdate(this._modeType, this._platform, this._version);
+        let remotePath = DataHelper.oss.getHotupdateRemotePath(this._modeType, this._version, this._platform);
         // 远程资源放置的路径
         let remoteResPath = `${remotePath}/${this._resVersion}`;
 
         let srcPath = DataHelper.hotupdate.getSrc(this._platform);
         let destPath = DataHelper.hotupdate.getDest(this._platform);
         // 上传assets文件夹
-        await new OssUpload(path.join(srcPath, "assets"), remoteResPath).start();        
+        await new OssUpload(path.join(srcPath, "assets"), remoteResPath).start();
         // 上传src文件夹
         await new OssUpload(path.join(srcPath, "src"), remoteResPath).start();
         // 上传project.manifest文件
@@ -249,3 +252,5 @@ class HotUpdatePlugin {
 }
 
 module.exports = HotUpdatePlugin;
+
+new HotUpdatePlugin("android", "1.0.6", "4", "debug", true).start();

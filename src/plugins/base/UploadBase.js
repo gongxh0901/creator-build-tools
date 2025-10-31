@@ -39,12 +39,12 @@ class UploadBase {
 
     /** 
      * 资源数据
-     * filepath: 文件相对路径
+     * relative: 文件相对路径
      * 
      * status: 状态 等待中、上传中、上传成功
      * 
      * times: 重试次数
-     * @type {{filepath: string, status: "waiting" | "running" | "success", times: number}[]}
+     * @type {{relative: string, status: "waiting" | "running" | "success", times: number}[]}
      * @private
      */
     _resources = [];
@@ -78,14 +78,22 @@ class UploadBase {
         this._timeout = timeout;
         Logger.blue(`待上传目录:${this._local}  远程路径:${this._remote}  超时时间:${this._timeout}秒`);
 
-        // 文件列表
-        const files = FileUtils.getAllFiles(local);
-        this._total = files.length;
         this._successCount = 0;
         this._count = 0;
 
-        for (const filepath of files) {
-            this._resources.push({ filepath: filepath, status: "waiting", times: 0});
+        // 获取文件列表
+        // 校验路径是否为目录
+        const stat = fs.statSync(local);
+        if (stat.isDirectory()) {
+            const files = FileUtils.getAllFiles(local);
+            this._total = files.length;
+            for (const relative of files) {
+                this._resources.push({ relative, status: "waiting", times: 0});
+            }
+        } else {
+            this._total = 1;
+            this._resources.push({ relative: path.basename(local), status: "waiting", times: 0});
+            // this._resources.push({ relative: local, status: "waiting", times: 0});
         }
         Logger.blue("文件数量:" + this._total);
     }
@@ -98,7 +106,7 @@ class UploadBase {
         try {
             await this.onInitClient();
             await this._startUpload();
-            Logger.blue(`资源上传完成 成功上传【${this._total}】个文件。`);
+            Logger.success(`资源上传完成 成功上传【${this._total}】个文件。`);
         } catch (error) {
             Logger.error(`【资源上传中断】reason:${error.message}`);
             throw error;
@@ -111,7 +119,7 @@ class UploadBase {
      * @protected
      */
     async onInitClient() {
-        throw new Error("OssUpload onInitClient 方法未实现");
+        throw new Result(-1, "OssUpload onInitClient 方法未实现");
     }
 
     /**
@@ -123,7 +131,7 @@ class UploadBase {
      * @protected
      */
     async onUploadFile(filepath, remote, callback) {
-        throw new Error("OssUpload onUploadFile 方法未实现");
+        throw new Result(-1, "OssUpload onUploadFile 方法未实现");
     }
 
     /**
@@ -169,26 +177,28 @@ class UploadBase {
         }
         if (resource.times >= this._retryMax) {
             // 重试次数超过最大重试次数
-            this._resultCallback(new Result(-1, `资源【${resource.filepath}】上传失败`, null));
+            this._resultCallback(new Result(-1, `资源【${resource.relative}】上传失败`, null));
             return;
         }
 
-        let filepath = path.join(this._local, resource.filepath);
-        // 将Windows路径分隔符转换为OSS兼容的正斜杠
-        let remotePath = resource.filepath.replace(/\\/g, '/');
+        // 文件的相对路径
+        let relative = resource.relative;
+        // 文件的绝对路径
+        let absolute = path.join(this._local, relative);
+        // 转成远程能识别的路径分隔符
+        let remotePath = relative.replace(/\\/g, '/');
+        // 拼接远程路径 (相对于存储桶的根目录)
         let remote = `${this._remote}/${remotePath}`;
 
         this._parallel++;
         resource.status = "running";
-        // Logger.debug(`第${resource.times + 1}次上传文件: ${filepath}`);
-        this.onUploadFile(filepath, remote, {
+        this.onUploadFile(absolute, remote, {
             success: () => {
-                // Logger.log(`上传成功:${filepath}`);
                 this._bar.tick(1);
                 // 删除当前的
-                let index = this._resources.findIndex(info => info.filepath === filepath);
+                let index = this._resources.findIndex(info => info.relative === relative);
                 if (index !== -1) {
-                    this._resources.splice(index, 1);  
+                    this._resources.splice(index, 1);
                 } else {
                     resource.status = "success"
                 }
@@ -197,7 +207,7 @@ class UploadBase {
                 this._uploadNext();
             },
             fail: (code, message) => {
-                Logger.log(`上传[ ${filepath} ]失败 code:${code} message:${message}`);
+                Logger.log(`上传[ ${absolute} ]失败 code:${code} message:${message}`);
                 this._parallel--;
                 // 上传失败 重试
                 resource.times++;
@@ -226,13 +236,14 @@ class UploadBase {
      */
     _parseRemotePath(remote, local) {
         let result = '';
-        // 1. 处理remote 如果remote包含域名 则去掉
-        let baseUrl = DataHelper.oss.baseUrl;
-        if (remote.includes(baseUrl)) {
-            result = remote.replace(baseUrl, '');
-        } else if (remote.startsWith('/')) {
-            result = remote.slice(1);
-        } else {
+        // 1. 处理remote 如果remote包含域名 则去掉域名(协议+主机)，保留完整路径
+        try {
+            // 尝试解析为 URL（如果包含完整域名）
+            const url = new URL(remote);
+            // 只取 pathname + search + hash，保留完整路径
+            result = url.pathname + url.search + url.hash;
+        } catch (e) {
+            // 不是完整 URL，说明已经是路径了，直接使用
             result = remote;
         }
 
@@ -252,6 +263,7 @@ class UploadBase {
         if (result.endsWith('/')) {
             result = result.slice(0, -1);
         }
+        Logger.log(`解析后的远程路径:${result}`);
         return result;
     }
 }
