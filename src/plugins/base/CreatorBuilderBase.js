@@ -25,12 +25,12 @@ class CreatorBuilderBase {
         this._modeType = modeType;
         this._resVersion = resVersion;
 
-        Logger.tips(`平台:${this._platform}`);
-        Logger.tips(`版本:${this._version}`);
-        Logger.tips(`资源版本号:${this._resVersion}`);
-        Logger.tips(`模式:${this._modeType}`);
-        Logger.tips(`creator路径:${this._creator}`);
-        Logger.tips(`项目路径:${this._project}`);
+        Logger.log(`平台:${this._platform}`);
+        Logger.log(`版本:${this._version}`);
+        Logger.log(`资源版本号:${this._resVersion}`);
+        Logger.log(`模式:${this._modeType}`);
+        Logger.log(`creator路径:${this._creator}`);
+        Logger.log(`项目路径:${this._project}`);
     }
 
     /**

@@ -55,7 +55,7 @@ class Oss extends ConfigLoader {
      */
     getRemoteUrl(modeType, platform, version) {
         let modeStr = modeType === ModeType.DEBUG ? "dev" : "prod";
-        return this.baseUrl + `${modeStr}/v${version}/${platform}`;
+        return `${this.baseUrl}${modeStr}/${platform}/v${version}`;
     }
 
     /**
@@ -66,7 +66,7 @@ class Oss extends ConfigLoader {
      */
     getAppUploadUrl(modeType, version) {
         let modeStr = modeType === ModeType.DEBUG ? "dev" : "prod";
-        return this.baseUrl + `${modeStr}/app/v${version}`;
+        return `${this.baseUrl}${modeStr}/app/v${version}`;
     }
 
     /**

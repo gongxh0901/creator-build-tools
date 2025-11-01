@@ -30,11 +30,11 @@ class HotUpdatePlugin {
         this._modeType = modeType;
         this._immediately = immediately;
 
-        Logger.tips(`平台:${this._platform}`);
-        Logger.tips(`版本号:${this._version}`);
-        Logger.tips(`资源版本号:${this._resVersion}`);
-        Logger.tips(`模式:${this._modeType}`);
-        Logger.tips(`是否立即生效:${this._immediately ? "是" : "否"}`);
+        Logger.log(`平台:${this._platform}`);
+        Logger.log(`版本号:${this._version}`);
+        Logger.log(`资源版本号:${this._resVersion}`);
+        Logger.log(`模式:${this._modeType}`);
+        Logger.log(`是否立即生效:${this._immediately ? "是" : "否"}`);
     }
 
     /**
@@ -253,5 +253,3 @@ class HotUpdatePlugin {
 }
 
 module.exports = HotUpdatePlugin;
-
-// new HotUpdatePlugin("android", "1.0.6", "4", "debug", true).start();

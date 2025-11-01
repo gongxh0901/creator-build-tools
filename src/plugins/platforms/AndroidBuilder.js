@@ -16,15 +16,29 @@ const OssUpload = require('../upload/OssUpload');
 
 class AndroidBuilder extends ChannelBuilderBase {
     /**
-     * 构建前
-     * @protected
+     * 构建号
+     * @type {string}
+     * @private
      */
-    async onBuildBefore() {
-        this._buildCode = this._custom.build;
-        if (!this._buildCode) {
-            throw new Result(ErrCode.BuildCodeEmpty.code, ErrCode.BuildCodeEmpty.message);
-        }
-        this.modifyBuildGradle();
+    _buildCode = "";
+
+    /**
+     * @param {string} channel 渠道
+     * @param {string} version 版本号
+     * @param {"debug" | "release"} mode debug / release
+     * @param {string} build 构建号
+     * @public
+     */
+    constructor(channel, version, mode, build) {
+        Logger.blue(`==================== 构建安卓apk ====================`);
+        super(channel, version, mode);
+        this._buildCode = build;
+
+        Logger.log(`android工程路径:${this._project}`);
+        Logger.log(`渠道:${this._channel}`);
+        Logger.log(`版本:${this._version}`);
+        Logger.log(`构建号:${this._buildCode}`);
+        Logger.log(`模式:${this._mode}`);
     }
 
     /**
@@ -33,7 +47,8 @@ class AndroidBuilder extends ChannelBuilderBase {
      */
     async onBuild() {
         try {
-            Logger.blue(`android工程路径:${this._project}`);
+            // 修改版本号
+            this.modifyBuildGradle();
 
             // 获取 gradlew 路径
             const isWindows = require('os').platform() === 'win32';
@@ -45,8 +60,8 @@ class AndroidBuilder extends ChannelBuilderBase {
             // 清理构建缓存
             let result1 = await RunCommand(gradlewPath, ['clean'], gradlewDir);
             if (result1.code !== 0) {
-                console.error(result1);
-                throw new Result(ErrCode.GradlewClean.code, ErrCode.GradlewClean.message, result1);
+                console.error("清理构建缓存失败:", result1);
+                throw new Result(ErrCode.GradlewClean, "清理构建缓存失败", result1);
             }
             Logger.blue("清理构建缓存完成");
 
@@ -54,44 +69,18 @@ class AndroidBuilder extends ChannelBuilderBase {
             let options = [this._mode === ModeType.DEBUG ? 'assembleDebug' : 'assembleRelease'];
             let result2 = await RunCommand(gradlewPath, options, gradlewDir);
             if (result2.code !== 0) {
-                console.error(result2);
-                throw new Result(ErrCode.GradlewBuild.code, ErrCode.GradlewBuild.message, result2);
+                console.error("打包构建失败:", result2);
+                throw new Result(ErrCode.GradlewBuild, "打包构建失败", result2);
             }
+
+            this.copyApkToPublish();
+            await this.signature();
+            await this.ossUpload();
             Logger.blue("打包安卓apk成功");
         } catch (error) {
             Logger.error(`打包安卓apk失败 message:${error.message}`);
             throw new Result(-1, "打包安卓apk失败", error);
         }
-    }
-
-    /**
-     * 构建后
-     * @protected
-     */
-    async onBuildAfter() {
-        try {
-            this.copyApkToPublish();
-            await this.signature();
-            await this.ossUpload();
-        } catch (error) {
-            // if (error.code === ErrCode.AndroidSignFailed.code) {
-            //     Logger.error(`android包签名失败 code:${error.code} message:${error.message}`);
-            //     throw new Result(ErrCode.AndroidSignFailed.code, ErrCode.AndroidSignFailed.message + ` code:${error.code} message:${error.message}`, error);
-            // }
-
-
-            // Logger.error(`code: ${error.code} message: ${error.message}`);
-        }
-
-        // try {
-        //     await this.ossUpload();
-        //     if (this._isSend) {
-        //         await this.notificationFeishu();
-        //     }
-        // } catch (error) {
-        //     console.log(colors("red", "android包上传失败, 跳过飞书通知"), error);
-        // }
-        // console.log(colors("green", "android打包完成, apk文件路径:" + path.join(DataHelper.instance.project, 'publish', this._apkname)));
     }
 
     /**
@@ -105,7 +94,7 @@ class AndroidBuilder extends ChannelBuilderBase {
         let gradle = path.join(nativePath, 'build.gradle');
 
         if (!fs.existsSync(gradle)) {
-            throw new Result(ErrCode.FileNotFound.code, ErrCode.FileNotFound.message + `:${nativePath}`);
+            throw new Result(ErrCode.FileNotFound, `修改android版本号失败 未找到: ${nativePath}`);
         }
         // 修改build.gradle文件
         // 找到 versionCode和versionName所在的行 修改后替换，然后写入文件
@@ -118,7 +107,7 @@ class AndroidBuilder extends ChannelBuilderBase {
         content = content.replace(versionCodeLine[0], `versionCode ${this._buildCode}`);
         content = content.replace(versionNameLine[0], `versionName "${this._version}"`);
         fs.writeFileSync(gradle, content);
-        Logger.blue(`版本号修改成功 version:${this._version} build:${this._buildCode}`);
+        Logger.success(`版本号修改成功 version:${this._version} build:${this._buildCode}`);
     }
 
     /**
@@ -200,7 +189,7 @@ class AndroidBuilder extends ChannelBuilderBase {
         Logger.log("检查环境变量 apksigner:" + apksigner);
         const checkResult = await RunCommand(apksigner, ['--version']);
         if (checkResult.code !== 0) {
-            throw new Result(ErrCode.AndriodSignerTool.code, ErrCode.AndriodSignerTool.message, checkResult);
+            throw new Result(ErrCode.AndriodSignerNotFound, "未找到apksigner工具，请确保已安装Android SDK并设置APKSIGNER环境变量", checkResult);
         }
 
         let options = ["sign",
@@ -216,7 +205,7 @@ class AndroidBuilder extends ChannelBuilderBase {
         if (result.code == 0) {
             Logger.success("签名成功");
         } else {
-            throw new Result(ErrCode.AndroidSignFailed.code, ErrCode.AndroidSignFailed.message + ` code:${result.code} message:${result.message}`, result);
+            throw new Result(ErrCode.AndroidSignFailed, `android包签名失败 code:${result.code} message:${result.message}`, result);
         }
     }
 
@@ -229,18 +218,6 @@ class AndroidBuilder extends ChannelBuilderBase {
         let apkfile = path.join(DataHelper.base.project, 'publish', this._apkname);
         await new OssUpload(apkfile, `publish/${this._version}`, 300).start();
     }
-
-    // async notificationFeishu() {
-    //     let ossUrl = DataHelper.instance.ossUrl;
-    //     let url = ossUrl + DataHelper.instance.publish;
-    //     if (!url.endsWith('/')) {
-    //         url += '/';
-    //     }
-    //     url += (this._versionCode + '/' + this._apkname);
-    //     await new NotificationFeishu().nativeSend(this._channel, this._versionCode, this._buildCode, url, null, this._isDebug);
-    // }
 }
 
 module.exports = AndroidBuilder;
-
-new AndroidBuilder("official", "1.0.1", "debug", { build: "2" }).start();

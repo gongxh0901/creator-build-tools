@@ -35,14 +35,7 @@ class ChannelBuilderBase {
     _mode = "release";
 
     /**
-     * 自定义配置
-     * @type {object}
-     * @protected
-     */
-    _custom = {};
-
-    /**
-     * 项目路径
+     * 构建后的项目路径
      * @type {string}
      * @protected
      */
@@ -52,10 +45,9 @@ class ChannelBuilderBase {
      * @param {string} channel 渠道
      * @param {string} version 版本号
      * @param {"debug" | "release"} mode debug / release
-     * @param {{build?: string, robot?: string, message?: string}} custom 自定义配置
      * @public
      */
-    constructor(channel, version, mode, custom) {
+    constructor(channel, version, mode) {
         this._channel = channel;
 
         if (!DataHelper.channels.has(channel)) {
@@ -63,7 +55,6 @@ class ChannelBuilderBase {
         }
         this._version = version;
         this._mode = mode;
-        this._custom = custom;
 
         this._platform = DataHelper.channels.getPlatform(this._channel);
         this._project = path.join(DataHelper.base.project, DataHelper.platforms.getBuildProject(this._platform));
@@ -75,21 +66,12 @@ class ChannelBuilderBase {
      */
     async start() {
         try {
-            await this.onBuildBefore();
             await this.onBuild();
-            await this.onBuildAfter();
+            Logger.success(`渠道${this._channel}打包完成 版本号:${this._version} 模式:${this._mode}`);
         } catch (error) {
-            Logger.error(`构建出现错误 code:${error.code} message:${error.message}`);
-            // throw new Result(-1, `构建失败: ${error.message}`);
+            Logger.error(`渠道${this._channel}打包失败: code:${error.code} message:${error.message}`);
+            throw error;
         }
-    }
-
-    /**
-     * 构建前
-     * @protected
-     */
-    async onBuildBefore() {
-        throw new Result(-1, "onBuildBefore 方法未实现");
     }
 
     /**
@@ -98,14 +80,6 @@ class ChannelBuilderBase {
      */
     async onBuild() {
         throw new Result(-1, "onBuild 方法未实现");
-    }
-
-    /**
-     * 构建后
-     * @protected
-     */
-    async onBuildAfter() {
-        throw new Result(-1, "onBuildAfter 方法未实现");
     }
 }
 

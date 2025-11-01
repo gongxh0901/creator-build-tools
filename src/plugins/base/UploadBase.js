@@ -8,9 +8,9 @@ const fs = require('fs');
 const path = require('path');
 const ProgressBar = require('progress');
 const Result = require('../../utils/Result');
-const DataHelper = require('../../utils/DataHelper');
 const Logger = require('../../utils/Logger');
 const FileUtils = require('../../utils/FileUtils');
+const { ErrCode } = require('src/header/Header');
 
 class UploadBase {
     /** 
@@ -68,7 +68,7 @@ class UploadBase {
         Logger.log(`==================== 上传文件到cdn ====================`);
         // 验证有效性
         if (!fs.existsSync(local)) {
-            throw new Result(-1, `待上传资源【${local}】不存在`);
+            throw new Result(ErrCode.FileNotFound, `待上传资源【${local}】不存在`);
         }
         // 先处理本地路径 和 远程路径
         this._local = this._parseLocalPath(local);
@@ -76,7 +76,7 @@ class UploadBase {
         this._timeout = timeout ? timeout : this._timeout;
 
         this._timeout = timeout;
-        Logger.blue(`待上传目录:${this._local}  远程路径:${this._remote}  超时时间:${this._timeout}秒`);
+        Logger.log(`待上传目录:${this._local}  远程路径:${this._remote}  超时时间:${this._timeout}秒`);
 
         this._successCount = 0;
         this._count = 0;
@@ -95,7 +95,7 @@ class UploadBase {
             this._resources.push({ relative: path.basename(local), status: "waiting", times: 0});
             // this._resources.push({ relative: local, status: "waiting", times: 0});
         }
-        Logger.blue("文件数量:" + this._total);
+        Logger.log("文件数量:" + this._total);
     }
 
     /**
@@ -168,7 +168,7 @@ class UploadBase {
         const resource = this._resources.find(resource => resource.status === "waiting");
         if (!resource && this._parallel <= 0) {
             // 上传完成了
-            this._resultCallback(new Result(0, `资源上传完成 成功上传【${this._total}】个文件。`));
+            this._resultCallback(new Result(ErrCode.Success, `资源上传完成 成功上传【${this._total}】个文件。`));
             return;
         }
         if (!resource) {
@@ -177,7 +177,7 @@ class UploadBase {
         }
         if (resource.times >= this._retryMax) {
             // 重试次数超过最大重试次数
-            this._resultCallback(new Result(-1, `资源【${resource.relative}】上传失败`, null));
+            this._resultCallback(new Result(ErrCode.OssUploadFailed, `资源【${resource.relative}】上传失败`, null));
             return;
         }
 

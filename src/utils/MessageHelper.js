@@ -4,7 +4,7 @@
  * @Description: 信息收集工具
  */
 
-const { ModeType } = require("src/header/Header");
+const { ModeType } = require("../header/Header");
 
 const MessageType = {
     /**
