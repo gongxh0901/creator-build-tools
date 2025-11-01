@@ -50,31 +50,16 @@ class AndroidBuilder extends ChannelBuilderBase {
             // 修改版本号
             this.modifyBuildGradle();
 
-            // 获取 gradlew 路径
-            const isWindows = require('os').platform() === 'win32';
-            const gradlewDir = path.join(this._project, "proj");
-            const gradlewPath = path.join(gradlewDir, isWindows ? 'gradlew.bat' : 'gradlew');
-            Logger.blue(`gradlew项目目录:${gradlewDir}`);
-            Logger.blue(`gradlew路径:${gradlewPath}`);
+            // 构建apk
+            await this.buildApk();
 
-            // 清理构建缓存
-            let result1 = await RunCommand(gradlewPath, ['clean'], gradlewDir);
-            if (result1.code !== 0) {
-                console.error("清理构建缓存失败:", result1);
-                throw new Result(ErrCode.GradlewClean, "清理构建缓存失败", result1);
-            }
-            Logger.blue("清理构建缓存完成");
-
-            // 执行gradlew命令 打包apk
-            let options = [this._mode === ModeType.DEBUG ? 'assembleDebug' : 'assembleRelease'];
-            let result2 = await RunCommand(gradlewPath, options, gradlewDir);
-            if (result2.code !== 0) {
-                console.error("打包构建失败:", result2);
-                throw new Result(ErrCode.GradlewBuild, "打包构建失败", result2);
-            }
-
+            // 拷贝apk到publish目录
             this.copyApkToPublish();
+
+            // 给apk签名
             await this.signature();
+
+            // 上传apk到cdn
             await this.ossUpload();
             Logger.blue("打包安卓apk成功");
         } catch (error) {
@@ -108,6 +93,34 @@ class AndroidBuilder extends ChannelBuilderBase {
         content = content.replace(versionNameLine[0], `versionName "${this._version}"`);
         fs.writeFileSync(gradle, content);
         Logger.success(`版本号修改成功 version:${this._version} build:${this._buildCode}`);
+    }
+
+    /**
+     * 构建apk
+     * @private
+     * @returns {Promise<void>}
+     */
+    async buildApk() {
+        // 获取 gradlew 路径
+        const isWindows = require('os').platform() === 'win32';
+        const gradlewDir = path.join(this._project, "proj");
+        const gradlewPath = path.join(gradlewDir, isWindows ? 'gradlew.bat' : 'gradlew');
+        Logger.blue(`gradlew项目目录:${gradlewDir}`);
+        Logger.blue(`gradlew路径:${gradlewPath}`);
+
+        // 清理构建缓存
+        let result1 = await RunCommand(gradlewPath, ['clean'], gradlewDir);
+        if (result1.code !== 0) {
+            throw new Result(ErrCode.GradlewClean, "清理构建缓存失败", result1);
+        }
+        Logger.blue("清理构建缓存完成");
+
+        // 执行gradlew命令 打包apk
+        let options = [this._mode === ModeType.DEBUG ? 'assembleDebug' : 'assembleRelease'];
+        let result2 = await RunCommand(gradlewPath, options, gradlewDir);
+        if (result2.code !== 0) {
+            throw new Result(ErrCode.GradlewBuild, "打包构建失败", result2);
+        }
     }
 
     /**
