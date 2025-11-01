@@ -61,9 +61,16 @@ const ErrCode = {
     /** 上传项目到微信后台失败 */
     WechatUploadProject: 1202,
 
+    /** ========================== 抖音小游戏 ========================== */
+    /** 抖音小游戏上传资源失败 */
+    ByteDanceUploadRes: 1301,
+    /** 上传项目到抖音后台失败 */
+    ByteDanceUploadProject: 1302,
+
     /** ========================== oss 上传 ========================== */
+
     /** 资源上传失败 */
-    OssUploadFailed: 1301,
+    OssUploadFailed: 8001,
 }
 
 module.exports = { ModeType, ErrCode };

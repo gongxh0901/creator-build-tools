@@ -36,7 +36,7 @@ class Certificates extends ConfigLoader {
 
     /**
      * 平台对应的敏感数据配置
-     * @type {Map<string, {certificate: {debug: {cert: string, storePassword: string, alias: string, keyPassword: string, profile: string, signAlg: string, storeFile: string}, release: {cert: string, storePassword: string, alias: string, keyPassword: string, profile: string, signAlg: string, storeFile: string}}, appid: string, privateKey: string }>}
+     * @type {Map<string, {certificate: {debug: {cert: string, storePassword: string, alias: string, keyPassword: string, profile: string, signAlg: string, storeFile: string}, release: {cert: string, storePassword: string, alias: string, keyPassword: string, profile: string, signAlg: string, storeFile: string}}, appid: string, privateKey: string, email: string, password: string }>}
      */
     __maps = new Map();
 
@@ -59,6 +59,8 @@ class Certificates extends ConfigLoader {
                 this.checkAndroidCertificate(info);
             } else if (info.platform === "harmonyos-next") {
                 this.checkHarmonyosNextCertificate(info);
+            } else if (info.platform === "bytedance-mini-game") {
+                this.checkByteDanceAccount(info);
             }
             this.__maps.set(info.platform, info);
         }
@@ -104,6 +106,17 @@ class Certificates extends ConfigLoader {
             throw new Result(-1, `平台:【${platform}】对应的私钥文件不存在`);
         }
         return filepath;
+    }
+
+
+    /**
+     * 获取抖音平台的账号密码 用于抖音小游戏上传
+     * @param {string} platform 平台
+     * @returns {{email: string, password: string}} 账号密码
+     * @public
+     */
+    getByteDanceAccount(platform) {
+        return {email: this.__maps.get(platform).email, password: this.__maps.get(platform).password};
     }
     /****************************** 小游戏的敏感数据 end ******************************/
 
@@ -290,6 +303,18 @@ class Certificates extends ConfigLoader {
         // if (!info.certificate.debug.profile || !info.certificate.release.profile) {
         //     throw new Result(-1, `certificates.json 中 harmonyos-next平台对应的敏感数据配置不存在 debug或release下的 profile 字段, 请检查certificates.json`);
         // }
+    }
+
+    /**
+     * 检查抖音平台的账号密码
+     * @param {object} info 账号密码信息
+     * @returns {void}
+     * @private
+     */
+    checkByteDanceAccount(info) {
+        if (!info.email || !info.password) {
+            throw new Result(-1, `certificates.json 中 bytedance-mini-game平台对应的敏感数据配置不存在 email或password 字段, 请检查certificates.json`);
+        }
     }
 }
 
