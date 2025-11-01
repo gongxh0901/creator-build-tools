@@ -78,8 +78,8 @@ class AndroidBuilder extends ChannelBuilderBase {
             await this.ossUpload();
             Logger.blue("打包安卓apk成功");
         } catch (error) {
-            Logger.error(`打包安卓apk失败 message:${error.message}`);
-            throw new Result(-1, "打包安卓apk失败", error);
+            Logger.error(`安卓apk打包失败 code:${error.code} message:${error.message}`);
+            throw new Result(ErrCode.AndroidError, "安卓apk打包失败", error);
         }
     }
 
